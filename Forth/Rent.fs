@@ -10,9 +10,8 @@ ACT-CREATE PLAN
     ACT-GET 0= IF 0 THEN ;
 
 : [!] ( n k t -- store n at k in t is n is greater )
-    2DUP >R >R 
-    [@] MAX  
-    R> R> ACT-INSERT ; 
+    2DUP 2>R [@] MAX  
+    2R> ACT-INSERT ; 
 
 
 : CASH ( t -- update profit with plan at time t if it's greater )
@@ -32,20 +31,20 @@ ACT-CREATE PLAN
     SWAP -1 32 RSHIFT AND ;
     
 : {CASH} ( t -- record a cash action at time t )
-    0 TIME>KEY 0 SWAP ACTIONS [!] ;
+    0 TUCK TIME>KEY ACTIONS [!] ;
 
-: {RENT} ( t d p -- record a rent action if p is greater )
-    -ROT TIME>KEY ACTIONS [!] ;
+: {RENT} ( p t d  -- record a rent action if p is greater )
+    TIME>KEY ACTIONS [!] ;
 
 : ADD-ORDER ( t d p -- record actions for an order )
-    -ROT 2DUP + {CASH}
-    ROT {RENT} ;
+    -ROT 2DUP 
+    + {CASH}
+    {RENT} ;
 
 : DO-ACTION ( n k -- perform action )
-    KEY>TIME  
-    DUP 0= IF 
-        DROP CASH DROP 
-    ELSE ROT RENT THEN ;
+    KEY>TIME ?DUP IF 
+    ROT RENT ELSE 
+    NIP CASH THEN ; 
 
 ' DO-ACTION CONSTANT EXEC
 
@@ -56,3 +55,5 @@ ACT-CREATE PLAN
 
 : INIT ( -- )
     ACTIONS ACT-INIT ;
+
+INIT 0 5 100 ADD-ORDER 3 7 140 ADD-ORDER 5 9 80 ADD-ORDER 6 9 70 ADD-ORDER COMPUTE-PROFIT PROFIT ? CR BYE
