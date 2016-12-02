@@ -58,3 +58,18 @@ Because a workable solution for it requires the beginner to learn about:
 - sorting
 - mapping (associative array)
 
+Why Forth, Awk, Haskell?
+------------------------
+
+###Forth
+
+Forth is the simplest imperative language. A solution would be doable without it, but the `act.fs` library which brings AVL trees is very practical to use while keeping the solution in the spirit of Forth.
+
+###Awk
+
+Combining simple, powerful unix tools reveals to be the simplest approach in terms of lines of code.
+
+###Haskell
+
+Discovering the power of recursion, folding, and also how to solve this problem with a purely functionnal approach.
+
