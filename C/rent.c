@@ -78,7 +78,17 @@ struct cell *find(int t) {
     }
     return NULL;
 }
-void rent(int time, int price) {
+
+int cash(struct cell *p, int profit) {
+    if (p != NULL && p->value > profit)
+        return p-> value;
+    else
+       return profit;
+}
+
+void rent(struct order *order, int profit) {
+    int time = order->time + order->duration;
+    int price = order-> price + profit;
     struct cell *cellcash = find(time);
     if (cellcash->value < price)
         cellcash->value = price;
@@ -87,20 +97,18 @@ void rent(int time, int price) {
 
 int calc_profit() {
     int profit = 0;
-    int o = 0;
-    int c = 0;
-    while(o < maxorders || c < maxcells) {
-        if(o == maxorders || plan[c].time <= orders[o].time) {
-            if (plan[c].value > profit)
-                profit = plan[c].value;
-            c++;
+    struct order *o = orders;
+    const struct order *maxord = &orders[maxorders];
+    struct cell  *p = plan;
+    const struct cell *maxplan = &plan[maxcells]; 
+    while(o < maxord || p < maxplan) {
+        if(o == maxord || p->time <= o->time) {
+            profit = cash(p, profit);
+            p++;
         }
-        else if(o < maxorders) {
-            struct cell *cellcash = find(orders[o].time);
-            int cash = cellcash ? cellcash->value: 0;
-            if (cash > profit)
-                profit = cash;
-            rent(orders[o].time + orders[o].duration, profit + orders[o].price);
+        else if(o < maxord) {
+            profit = cash(find(o->time), profit);
+            rent(o, profit);
             o++;
         }
     }
