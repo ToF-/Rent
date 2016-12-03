@@ -1,0 +1,7 @@
+#! /usr/bin/awk -f
+
+# actions <orders.txt
+# generate 2 actions (rent, and cash) for each order 
+
+{ printf "%07d CASH\n%07d RENT %07d %07d\n", $1+$2, $1, $2, $3 }
+
