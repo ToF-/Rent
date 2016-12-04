@@ -21,19 +21,25 @@ struct cash {
 int MaxCash;
 
 
+char line[MAXLINE];
+
+int read_int() {
+    int i;
+    fgets(line, MAXLINE, stdin);
+    sscanf(line, "%d", &i);
+    return i;
+}
 
 int read_orders() {
-    char line[MAXLINE];
-    int r = 0;
-
-    while(r < MAXORDERS && fgets(line, MAXLINE, stdin)) {
+    int max = read_int();
+    for (int r=0; r < max; r ++) {
+        fgets(line, MAXLINE, stdin);
         sscanf(line, "%d %d %d",
             &Rent[r].time, 
             &Rent[r].duration, 
             &Rent[r].price);
-        r++;
     }
-    return r;
+    return max;
 }
 
 int cmp_int(const void *a, const void *b) {
@@ -134,9 +140,14 @@ int calc_profit() {
 }
 
 int main() {
-    MaxRent = read_orders();
-    MaxCash = init_plan();
-    sort_Rent();
-    printf("%d\n", calc_profit());
+    int cases = read_int();
+    assert(cases > 0);
+    for(int i=0; i < cases; i++) {
+        MaxRent = read_orders();
+        assert(MaxRent > 0);
+        MaxCash = init_plan();
+        sort_Rent();
+        printf("%d\n", calc_profit());
+    }
 }
 
