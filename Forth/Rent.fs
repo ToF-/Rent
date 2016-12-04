@@ -58,22 +58,22 @@ ACT-CREATE PLAN
 
 4096 CONSTANT MAX-LINE
 
-: READ-STDIN ( -- n  read an int on stdin or 0 )
+: EVAL-STDIN ( -- read stdin and interpret it or 0 )
     PAD MAX-LINE STDIN READ-LINE THROW
     IF PAD SWAP EVALUATE ELSE 0 THEN ;
 
-: READ-CASE ( n -- process a number of orders )
+: PROCESS-CASE ( n -- process a number of orders )
     INIT
-    READ-STDIN 0 DO 
-        READ-STDIN ADD-ORDER 
+    EVAL-STDIN 0 DO 
+        EVAL-STDIN ADD-ORDER 
     LOOP
     COMPUTE-PROFIT 
     PROFIT ? CR ;
 
-: READ-CASES ( -- process all cases )
-    READ-STDIN 0 DO 
-        READ-CASE 
+: PROCESS-CASES ( -- process all cases )
+    EVAL-STDIN 0 DO 
+        PROCESS-CASE 
     LOOP ;
 
-READ-CASES
+PROCESS-CASES
 BYE
