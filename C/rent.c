@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <assert.h>
 
 #define MAXLINE 80
 #define MAXORDERS 10000
@@ -10,60 +11,70 @@ struct rent {
     int price;
 } Rent[MAXORDERS];
 
-int maxRent;
+int MaxRent;
 
 struct cash {
     int time;
     int value;
 } Cash[MAXORDERS];
 
-int maxcashs;
+int MaxCash;
 
-int temp[MAXORDERS];
 
-char line[MAXLINE];
 
-void read_orders() {
-    for(int i=0;i<MAXORDERS && fgets(line, MAXLINE, stdin);i++, maxRent++)
-        sscanf(line, "%d %d %d", &Rent[i].time, &Rent[i].duration, &Rent[i].price);
+int read_orders() {
+    char line[MAXLINE];
+    int r = 0;
+
+    while(r < MAXORDERS && fgets(line, MAXLINE, stdin)) {
+        sscanf(line, "%d %d %d",
+            &Rent[r].time, 
+            &Rent[r].duration, 
+            &Rent[r].price);
+        r++;
+    }
+    return r;
 }
 
 int cmp_int(const void *a, const void *b) {
     int *ia = (int *)a;
     int *ib = (int *)b;
+
     return (*ia - *ib);
 }
 
-void define_Cash() {
-    for(int i=0; i<maxRent; i++)
+int init_plan() {
+    int temp[MAXORDERS];
+
+    for(int i=0; i<MaxRent; i++)
         temp[i] = Rent[i].time + Rent[i].duration;
-    qsort(temp, maxRent, sizeof(int), cmp_int);
+    qsort(temp, MaxRent, sizeof(int), cmp_int);
     int t = -1;
     int p = 0;
-    for(int i=0; i<maxRent; i++) 
+    for(int i=0; i<MaxRent; i++) 
         if(temp[i] != t) { 
             t = temp[i];
             Cash[p].time = t;
             Cash[p].value = 0;
             p++;
         }
-    maxcashs = p;
+    return p;
 }
-
 
 int cmp_rent(const void *a, const void *b) {
     struct rent *ca = (struct rent *)a;
     struct rent *cb = (struct rent *)b;
+
     return (ca->time - cb->time);
 }
 
 void sort_Rent() {
-    qsort(Rent, maxRent, sizeof(struct rent), cmp_rent);
+    qsort(Rent, MaxRent, sizeof(struct rent), cmp_rent);
 }
 
 struct cash *find(int t) {
     int l = 0;
-    int u = maxcashs -1;
+    int u = MaxCash -1;
     int m = -1;
     int index = -1;
 
@@ -92,6 +103,7 @@ void rent(struct rent rent, int profit) {
     int time = rent.time + rent.duration;
     int price = rent. price + profit;
     struct cash *cash = find(time);
+
     if (cash->value < price)
         cash->value = price;
 }
@@ -99,18 +111,18 @@ void rent(struct rent rent, int profit) {
 
 int calc_profit() {
     int profit = 0;
-    int o = 0,p = 0;
+    int r = 0,p = 0;
 
-    while(p < maxcashs) {
-        if (o < maxRent) {
-            if (Cash[p].time <= Rent[o].time) {
+    while(p < MaxCash) {
+        if (r < MaxRent) {
+            if (Cash[p].time <= Rent[r].time) {
                 profit = cash(&Cash[p], profit);
                 p++;
             }
             else {
-                profit = cash(find(Rent[o].time), profit);
-                rent(Rent[o], profit);
-                o++;
+                profit = cash(find(Rent[r].time), profit);
+                rent(Rent[r], profit);
+                r++;
             }    
         }
         else {
@@ -119,12 +131,11 @@ int calc_profit() {
         }
     }
     return profit;           
-
 }
 
 int main() {
-    read_orders();
-    define_Cash();
+    MaxRent = read_orders();
+    MaxCash = init_plan();
     sort_Rent();
     printf("%d\n", calc_profit());
 }
