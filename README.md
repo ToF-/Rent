@@ -58,12 +58,16 @@ Because a workable solution for it requires the beginner to learn about:
 - sorting
 - mapping (associative array)
 
-Why Forth, Awk, Haskell?
+Why Forth, C, Awk, Haskell?
 ------------------------
 
 ###Forth
 
-Forth is the simplest imperative language. A solution would be doable without it, but the `act.fs` library which brings AVL trees is very practical to use while keeping the solution in the spirit of Forth.
+Forth is the simplest imperative language. The `act.fs` library which brings AVL trees is very practical to use while keeping the solution in the spirit of Forth.
+
+###C
+
+The approach differs as we use only the stdlib function `qsort` and binary search.
 
 ###Awk
 
