@@ -2,6 +2,11 @@
 
 # actions <orders.txt
 # generate 2 actions (rent, and cash) for each order 
-
-{ printf "%07d CASH\n%07d RENT %07d %07d\n", $1+$2, $1, $2, $3 }
+BEGIN { case = -2 }
+/^[0-9]+$/ { case = case + 1 
+             if(case>=0) {
+                 printf "%02d %07d BEGIN\n", case, 0
+             }
+         } 
+/[0-9]+ [0-9]+ [0-9]+/ { printf "%02d %07d CASH\n%02d %07d RENT %07d %07d\n", case, $1+$2, case, $1, $2, $3 }
 

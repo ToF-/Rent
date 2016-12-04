@@ -2,12 +2,17 @@
 
 # compute maximum profit made out of sorted actions
 
-BEGIN { profit = 0 }
+BEGIN { profit = -1 }
 
-{ if ($2 == "CASH") 
-    cash($1) 
-    else 
-    rent($1,$3,$4) }
+/BEGIN/ { if (profit != -1) {
+            print profit
+        }
+        profit = 0
+    }
+
+/CASH/ { cash($2) }
+
+/RENT/ { rent($2, $4, $5) }
 
 END { print profit }
 
