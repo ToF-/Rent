@@ -85,8 +85,11 @@ Let's define `[]` that will access the table:
 
     CREATE PLAN  200 CELLS ALLOT  PLAN 200 CELLS ERASE   
 
+    : CELLS+ ( i t -- adr  compute adress of position i in table t )
+        SWAP CELLS + ;
+
     : []  ( i t -- n  retrieve value of position i in table t or 0 )
-        SWAP CELLS + @ ;
+       CELLS+ @ ;
 
 Now we can define a word to update our table. Let's write a test first:
 
@@ -115,11 +118,14 @@ Here's our definition:
 
     CREATE PLAN  200 CELLS ALLOT  PLAN 200 CELLS ERASE   
 
+    : CELLS+ ( i t -- adr  compute adress of position i in table t )
+        SWAP CELLS + ;
+
     : []  ( i t -- n  retrieve value of position i in table t or 0 )
-        SWAP CELLS + @ ;
+       CELLS+ @ ;
 
     : [!] ( n i t -- update value at position i in table t with n )
-        SWAP CELLS + ! ;
+        CELLS+ ! ;
 
 The table cannot be updated with a smaller value than the value already present:
 
@@ -139,8 +145,7 @@ This test fails:
 Our word should first read the current, then update the table with the maximum between current and new value: 
 
     : [!] ( n i t -- update position i in table t with n if not smaller )
-        SWAP CELLS +        ( n adr )
-        DUP @               ( n adr n' )
-        ROT MAX             ( adr v )
+        CELLS+ DUP @
+        ROT MAX
         SWAP ! ;             
 
