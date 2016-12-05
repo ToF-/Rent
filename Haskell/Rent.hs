@@ -1,4 +1,4 @@
-module Rent where
+module Main where
 import Data.List (sortBy)
 import Data.Ord (comparing)
 import Data.Map (Map, empty, insertWith, findWithDefault)
