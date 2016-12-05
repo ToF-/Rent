@@ -141,10 +141,8 @@ int calc_profit() {
 
 int main() {
     int cases = read_int();
-    assert(cases > 0);
     for(int i=0; i < cases; i++) {
         MaxRent = read_orders();
-        assert(MaxRent > 0);
         MaxCash = init_plan();
         sort_Rent();
         printf("%d\n", calc_profit());
