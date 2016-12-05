@@ -58,22 +58,34 @@ Because a workable solution for it requires the beginner to learn about:
 - sorting
 - mapping (associative array)
 
-Why Forth, C, Awk, Haskell?
+Why *Forth*, *C*, *Awk*, *Haskell*?
 ------------------------
 
-###Forth
+*Forth*
+ 
+- Simplest imperative language
+    - small definitions assembled in a bottom-up approach
+- Adapting the problem to the language and environment
+    - evaluating the input data as part of the source program
+    - using the `act` library which provides AVL trees
+    - creating compound keys on a single integer word
 
-Forth is the simplest imperative language. The `act.fs` library which brings AVL trees is very practical to use while keeping the solution in the spirit of Forth.
+*C*
 
-###C
+- Using classical constructs: array, struct
+- Sorting and binary search
+- Merging and processing two ordered arrays 
 
-The approach differs as we use only the stdlib function `qsort` and binary search.
+*Awk*
 
-###Awk
+- Combining simple, powerful unix tools reveals
+- Regular Expressions
+- Associative arrays
+- Traversal and breaks
 
-Combining simple, powerful unix tools reveals to be the simplest approach in terms of lines of code.
+*Haskell*
 
-###Haskell
-
-Discovering the power of recursion, folding, and also how to solve this problem with a purely functionnal approach.
+- Pure functions
+- Folding
+- Map data structure
 
