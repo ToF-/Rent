@@ -149,9 +149,24 @@ This test fails:
 
 We have to change our definition so that the current value is read first, and  the table is updated with the maximum between the current and the new value:
 
+    : [@]  ( i t -- n  retrieve value at position i in table t or 0 )
+       SWAP CELLS + @ ;
+
     : [!] ( n i t -- update position i in table t with n if not smaller )
         SWAP CELLS + 
         DUP @
         ROT MAX
         SWAP ! ;             
 
+And now the test passes. We can refactor this code:
+
+    : POS ( i t -- address of position i in table t )
+        SWAP CELLS + ;
+
+    : [@]  ( i t -- n  retrieve value at pos i in table t or 0 )
+       POS @ ;
+
+    : [!] ( n i t -- update pos i in t with n if greater )
+        POS DUP @
+        ROT MAX
+        SWAP ! ;             
