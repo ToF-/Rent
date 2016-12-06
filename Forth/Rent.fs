@@ -3,26 +3,29 @@
 
     CREATE PLAN  200 CELLS ALLOT  PLAN 200 CELLS ERASE   
 
-    : [] ( i t -- address of position i in table t )
-        SWAP CELLS + ;
+    : PLAN[] ( t -- addr   address of position t in plan )
+        CELLS PLAN + ;
 
-    : [@|0]  ( i t -- n  retrieve value at pos i in table t or 0 )
-       [] @ ;
+    : PLAN@ ( t -- retrieve a value at position t from plan or 0 )
+        PLAN[] @ ;
 
-    : [>!] ( n i t -- update pos i in t with n if greater )
-        [] DUP @
+    : PLAN! ( n t -- stores value n at position t in plan )
+        PLAN[] DUP @ 
         ROT MAX
-        SWAP ! ;             
+        SWAP ! ;
 
     VARIABLE PROFIT
 
+    : INITIALIZE ( -- put profit and plan to zero )
+        0 PROFIT !
+        PLAN 200 CELLS ERASE ;
+
     : CASH ( t -- update profit from plan at a given time )
-        PLAN [@|0] 
+        PLAN@ 
         PROFIT @ MAX
         PROFIT ! ;
 
     : RENT ( st du pr -- update plan according to rent )
         ROT DUP CASH   
         SWAP PROFIT @ + 
-        -ROT + PLAN [>!] ;
-        
+        -ROT + PLAN! ;

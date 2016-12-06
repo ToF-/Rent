@@ -45,10 +45,10 @@ Here's what happens when we launch a test that passes:
 
 ###Mapping time values to money values
 
-First we need to be able to store and retrieve values at any `time` position in a table -- let's call this table `PLAN`. These operations follow two rules:
+First we need to be able to store and retrieve values at any `time` position in a table that we will call *plan*. These operations follow two rules:
 
 - If a position was never updated before, it's value should be 0.
-- A value at a position can be updated only with greater value.
+- A position in the table can be updated only with a greater value.
 
 Let's create a file where to put our program:
 
@@ -63,137 +63,117 @@ And then write our first test:
     REQUIRE Rent.fs
 
     T{
-    ." PLAN value (eg at 42) is O by default" CR
-    42 PLAN [@|0] ?0
+    ." values can be stored and retrieved in the plan table" CR
+    4807 42 PLAN!  42 PLAN@ 4807 ?S
+    256  17 PLAN!  17 PLAN@ 256  ?S
     }T
     BYE
 
-In this test, we are supposing that two words: `PLAN` and  `[@|0]` will respectively put the address of our table on the stack, and fetch the value at position 42 in this table.
+This test describes what happens after we store the value 4807 at position 42 of the plan, then fetching that same position : 4807 should be on the stack. The same happens with value 256 at position 17.
 
-Of course this doesn't work:
+Of course the test crashes, because the words `PLAN!` and `PLAN@` don't exist yet:
 
-    Forth/Tests.fs:6: Undefined word
-        42 >>>PLAN<<< []  ?0
+Forth/Tests.fs:7: Undefined word
+    4807 42 >>>PLAN!<<<  42 PLAN@ 4807 ?S
 
-That's because the `PLAN` definittion doesn't exist yet. 
+Let's make the test pass. First we need a table -- let's name it `PLAN`.
 How should we implement such a table ? 
-Let's start with a simple proof of concept. We will pretend for a moment that the *start time* can only be comprised betmeen 0 and 100, as well as *duration*. That means that the maximum time value is 200. This allow for our `PLAN` to reside in the dictionnary:
+For now, what we just need is a simple proof of concept. We will pretend for a moment that the *start time* can only be comprised betmeen 0 and 100, as well as *duration*. That means that the maximum time value is 200. This allow for our `PLAN` to reside in the dictionnary:
 
     \ Rent.fs
     \ Solving the RENT problem in gforth
 
     CREATE PLAN  200 CELLS ALLOT  PLAN 200 CELLS ERASE   
 
-Now the test crashes for the *other* reason:
+We create a word `PLAN` then reserve 200 CELLS (200 x 8) byte or memory, then fill this space with zeroes.
+Now we can create our store and retrieve words:
 
-    Forth/Tests.fs:6: Undefined word
-        42 PLAN >>>[@|0]<<<  ?0
+    : PLAN@ ( t -- retrieve a value at position t from plan or 0 )
+        CELLS PLAN + @ ;
 
-Let's define `[@|0]` that will access the table:
+    : PLAN! ( n t -- stores value n at position t in plan )
+        CELLS PLAN + ! ;
 
-    \ Rent.fs
-    \ Solving the RENT problem in gforth
+Now our test pass.
 
-    CREATE PLAN  200 CELLS ALLOT  PLAN 200 CELLS ERASE   
+Let's write a new test that will show that a table cannot be updated with a smaller value than the value already present:
 
-    : [@|0]  ( i t -- n  retrieve value at position i in table t or 0 )
-       CELLS + @ ;
-
-And the test passes.
-
-Now we can define a word to update our table. Let's write a test first:
-
-    REQUIRE ffl/tst.fs
-    REQUIRE Rent.fs
-
-    T{
-    ." PLAN value (eg at 42) is O by default" CR
-    42 PLAN [@|0]  ?0
-
-    ." after an update, the value can be retrieved" CR
-    4807 42 PLAN [>!]
-    42 PLAN []  4807 ?S
-    }T
-    BYE
-
-Of course it fails:
-
-    Forth/Tests.fs:9: Undefined word
-        4807 42 PLAN >>>[>!]<<<
-
-Let's write a definition for `[>!]`:
-
-    \ Rent.fs
-    \ Solving the RENT problem in gforth
-
-    CREATE PLAN  200 CELLS ALLOT  PLAN 200 CELLS ERASE   
-
-    : [@|0]  ( i t -- n  retrieve value at position i in table t or 0 )
-       SWAP CELLS + @ ;
-
-    : [>!] ( n i t -- update value at position i in table t with n )
-        SWAP CELLS + ! ;
-
-Let's write a third test that will show that a table cannot be updated with a smaller value than the value already present:
-
-    ." updating with a smaller value is not possible" CR
-    4807 42 PLAN [>!]
-    4096 42 PLAN [>!]
-    42 PLAN [@|0]  4807 ?S
+    ." value can be stored only if greater than value present" CR
+    500  23 PLAN!  23 PLAN@  500 ?S
+    250  23 PLAN!  23 PLAN@  500 ?S  
 
 This test fails:
 
-    updating with a smaller value is not possible
-    stack contents mismatch:     42 PLAN []  4807 ?S
-      expecting 4807 and found 4096
+stack contents mismatch:     250  23 PLAN!  23 PLAN@  500 ?S
+  expecting 500 and found 250
 
 We have to change our definition so that the current value is read first, and  the table is updated with the maximum between the current and the new value:
 
-    : [@|0]  ( i t -- n  retrieve value at position i in table t or 0 )
-       SWAP CELLS + @ ;
-
-    : [>!] ( n i t -- update position i in table t with n if not smaller )
-        SWAP CELLS + 
-        DUP @
+    : PLAN! ( n t -- stores value n at position t in plan )
+        CELLS PLAN + 
+        DUP @ 
         ROT MAX
-        SWAP ! ;             
+        SWAP ! ;
 
 And now the test passes. Let's remove some repetition here:
 
-    : [] ( i t -- address of position i in table t )
-        SWAP CELLS + ;
+    : PLAN[] ( t -- addr   address of position t in plan )
+        CELLS PLAN + ;
 
-    : [@|0]  ( i t -- n  retrieve value at pos i in table t or 0 )
-       [] @ ;
+    : PLAN@ ( t -- retrieve a value at position t from plan or 0 )
+        PLAN[] @ ;
 
-    : [>!] ( n i t -- update pos i in t with n if greater )
-        [] DUP @
+    : PLAN! ( n t -- stores value n at position t in plan )
+        PLAN[] DUP @ 
         ROT MAX
-        SWAP ! ;             
+        SWAP ! ;
 
 ### Updating cash, planning rents
 
-When we update cash at a given time, profit should increase:
+Let's continue with profit calculation. The rules are as following:
 
-    ." when updating cash, profit should increase" CR
+- when performing a *cash* operation at time t, profit rises with value at position t in plan.
+- when performing a *cash* operation, profit cannot be updated with a smaller value. 
+- when performing a *rent* operation a time t for duration d and price p, the value at position t+d in plan is set to p + profit.
+- when performing a *rent* operation, the value at position t+d cannot be updated with a smaller value.
+
+We need a variable called `PROFIT`, and a word that will put profit and plan to zero. Let's write a test:
+
+    ." initialize set profit and plan to zeroes" CR
+    4807 PROFIT !
+    100 42 PLAN!
+    INITIALIZE
     PROFIT @ ?0
-    4807 42 CASH [>!]
-    42 CASH
-    PROFIT @ 4807 ?S
+    42 PLAN@ ?0
 
-We need a variable, `PROFIT` and a new word `CASH` :
+Now let's make the test pass:
 
     VARIABLE PROFIT
 
+    : INITIALIZE ( -- put profit and plan to zero )
+        0 PROFIT !
+        PLAN 200 CELLS ERASE ;
+ 
+Next test: when we update cash at a given time, profit should increase:
+
+    ." when updating cash, profit should increase" CR
+    INITIALIZE
+    PROFIT @ ?0
+    4807 42 PLAN!
+    42 CASH
+    PROFIT @ 4807 ?S
+
+We create a new definition:
+
     : CASH ( t -- update profit from plan at a given time )
-        PLAN [@|0] 
-        PROFIT ! ;
+        PLAN@ PROFIT ! ; 
 
 Profit should not decrease if the cash value is lower:
 
     ." when updating cash, profit should not decrease" CR
-    4807 42 PLAN [>!]
-    4096 43 PLAN [>!]
+    INITIALIZE
+    4807 42 PLAN!
+    4096 43 PLAN!
     42 CASH
     43 CASH
     PROFIT @ 4807 ?S
@@ -201,7 +181,7 @@ Profit should not decrease if the cash value is lower:
 To make this test past, we change the definition to store the maximum value of current profit value and the value in the plan
 
     : CASH ( t -- update profit from plan at a given time )
-        PLAN [@|0] 
+        PLAN@ 
         PROFIT @ MAX
         PROFIT ! ;
 
@@ -213,22 +193,23 @@ Planning a rent at a given time for a given duration and price, amounts to:
 Let's write a test:
 
     ." planning rent t d p update plan at t+d with profit + p" CR
+    INITIALIZE
     500 PROFIT !
-    500 10 PLAN [>!]
+    500 10 PLAN!
     10 7 450  RENT
-    17 PLAN [@|0]  950 ?S
+    17 PLAN@  950 ?S
       
 Our definition of `RENT` should update profit, add it to the price then update the plan at the end time:
 
     : RENT ( st du pr -- update plan according to rent )
         ROT DUP CASH   
         SWAP PROFIT @ + 
-        -ROT + PLAN [>!] ;
+        -ROT + PLAN! ;
 
 Now we can verify our algorithm. Supposing that `CASH` and `RENT` operations are performed in the right order, we obtain the maximum profit:
 
     ." maximize profit from cash and rent operations" CR
-    PLAN 200 ERASE 0 PROFIT !
+    INITIALIZE
     0 5 100 RENT
     3 7 140 RENT
     5       CASH
