@@ -69,43 +69,42 @@ And then write our first test:
     }T
     BYE
 
-This test describes what happens after we store the value 4807 at position 42 of the plan, then fetching that same position : 4807 should be on the stack. The same happens with value 256 at position 17.
+This test describes what happens after we store the value 4807 at position 42 of the plan, then retrieving that same position : 4807 should be on the stack. The same happens with value 256 at position 17.
 
 Of course the test crashes, because the words `PLAN!` and `PLAN@` don't exist yet:
 
 Forth/Tests.fs:7: Undefined word
     4807 42 >>>PLAN!<<<  42 PLAN@ 4807 ?S
 
-Let's make the test pass. First we need a table -- let's name it `PLAN`.
+Let's make the test pass. First we need a table for the plan.
 How should we implement such a table ? 
-For now, what we just need is a simple proof of concept. We will pretend for a moment that the *start time* can only be comprised betmeen 0 and 100, as well as *duration*. That means that the maximum time value is 200. This allow for our `PLAN` to reside in the dictionnary:
+Let's pretend for a moment that the *start time* can only be comprised betmeen 0 and 100, as well as *duration*. That means that the maximum time value is 200. This allow for our `PLAN` to reside in the dictionnary:
 
     \ Rent.fs
     \ Solving the RENT problem in gforth
 
     CREATE PLAN  200 CELLS ALLOT  PLAN 200 CELLS ERASE   
 
-We create a word `PLAN` then reserve 200 CELLS (200 x 8) byte or memory, then fill this space with zeroes.
-Now we can create our store and retrieve words:
+We create a word `PLAN` then reserve 200 CELLS (200 x 8) bytes of memory, then fill this space with zeros.
+Now we can write our definitions for retrieving and storing values in the table:
 
-    : PLAN@ ( t -- retrieve a value at position t from plan or 0 )
+    : PLAN@ ( t -- retrieve plan value at time t or 0 )
         CELLS PLAN + @ ;
 
-    : PLAN! ( n t -- stores value n at position t in plan )
+    : PLAN! ( n t -- store value n at time t in plan )
         CELLS PLAN + ! ;
 
 Now our test pass.
 
-Let's write a new test that will show that a table cannot be updated with a smaller value than the value already present:
+Here's a new test: the plan cannot be updated with a smaller value than the value already present:
 
     ." value can be stored only if greater than value present" CR
-    500  23 PLAN!  23 PLAN@  500 ?S
-    250  23 PLAN!  23 PLAN@  500 ?S  
+    500 23 PLAN!  250 23 PLAN!  23 PLAN@  500 ?S  
 
 This test fails:
 
-stack contents mismatch:     250  23 PLAN!  23 PLAN@  500 ?S
-  expecting 500 and found 250
+    stack contents mismatch:     500 23 PLAN!  250 23 PLAN!  23 PLAN@  500 ?S  
+      expecting 500 and found 250
 
 We have to change our definition so that the current value is read first, and  the table is updated with the maximum between the current and the new value:
 
@@ -130,18 +129,17 @@ And now the test passes. Let's remove some repetition here:
 
 ### Updating cash, planning rents
 
-Let's continue with profit calculation. The rules are as following:
+Let's continue with profit calculation. These are the rules:
 
-- when performing a *cash* operation at time t, profit rises with value at position t in plan.
-- when performing a *cash* operation, profit cannot be updated with a smaller value. 
+- when performing a *cash* operation at time t, profit is set to the plan value at that position.
+- profit cannot be reduced to a smaller value: if the plan value is smaller than profit, profit is unchanged.
 - when performing a *rent* operation a time t for duration d and price p, the value at position t+d in plan is set to p + profit.
-- when performing a *rent* operation, the value at position t+d cannot be updated with a smaller value.
+- plan cannot be reduced to as smaller value: if the value at position t+d is already greater than profit+p, it is left unchanged.
 
 We need a variable called `PROFIT`, and a word that will put profit and plan to zero. Let's write a test:
 
-    ." initialize set profit and plan to zeroes" CR
-    4807 PROFIT !
-    100 42 PLAN!
+    ." initialize reset profit and plan to zeros" CR
+    4807 PROFIT !  100 42 PLAN!
     INITIALIZE
     PROFIT @ ?0
     42 PLAN@ ?0
@@ -158,7 +156,6 @@ Next test: when we update cash at a given time, profit should increase:
 
     ." when updating cash, profit should increase" CR
     INITIALIZE
-    PROFIT @ ?0
     4807 42 PLAN!
     42 CASH
     PROFIT @ 4807 ?S
@@ -178,7 +175,7 @@ Profit should not decrease if the cash value is lower:
     43 CASH
     PROFIT @ 4807 ?S
 
-To make this test past, we change the definition to store the maximum value of current profit value and the value in the plan
+To make this test past, we change the definition to keep the maximum value between current profit and the value found in the plan
 
     : CASH ( t -- update profit from plan at a given time )
         PLAN@ 
@@ -187,26 +184,25 @@ To make this test past, we change the definition to store the maximum value of c
 
 Planning a rent at a given time for a given duration and price, amounts to:
 
-    - update the current profit value at the *start time*
-    - update the plan at the end time with the value of *profit* + *price*
+- update the current profit value at the *start time*
+- update the plan at the end time with the value of *profit* + *price*
 
 Let's write a test:
 
     ." planning rent t d p update plan at t+d with profit + p" CR
     INITIALIZE
-    500 PROFIT !
     500 10 PLAN!
     10 7 450  RENT
     17 PLAN@  950 ?S
       
 Our definition of `RENT` should update profit, add it to the price then update the plan at the end time:
 
-    : RENT ( st du pr -- update plan according to rent )
+    : RENT ( t d p -- update plan according to rent )
         ROT DUP CASH   
         SWAP PROFIT @ + 
         -ROT + PLAN! ;
 
-Now we can verify our algorithm. Supposing that `CASH` and `RENT` operations are performed in the right order, we obtain the maximum profit:
+Now we can verify our algorithm. By performing `CASH` and `RENT` operations in sequence, we obtain the maximum profit:
 
     ." maximize profit from cash and rent operations" CR
     INITIALIZE
@@ -220,4 +216,4 @@ Now we can verify our algorithm. Supposing that `CASH` and `RENT` operations are
     15      CASH
     PROFIT @  180 ?S
 
-And this test passes. Our algorithm works!
+And this test passes. 

@@ -35,7 +35,6 @@
 
     ." planning rent t d p update plan at t+d with profit + p" CR
     INITIALIZE
-    500 PROFIT !
     500 10 PLAN!
     10 7 450  RENT
     17 PLAN@  950 ?S
