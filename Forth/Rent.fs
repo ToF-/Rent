@@ -66,8 +66,22 @@ ACT-CREATE ACTIONS
 
 4096 CONSTANT MAX-LINE
 
-: GET-LINE ( -- n f  read from stdin on pad, leaving lenght and flag )
+: GET-STDIN ( -- n f  read from stdin on pad, leaving lenght and flag )
     PAD MAX-LINE STDIN READ-LINE THROW ;
 
 : EVAL-LINE ( -- read a line from stdin and evaluate it or leave 0 )
-    GET-LINE IF PAD SWAP EVALUATE ELSE 0 THEN ;
+    GET-STDIN IF PAD SWAP EVALUATE ELSE 0 THEN ;
+
+: GET-ORDERS ( -- read orders from stdin and add them )
+    INIT-ACTIONS
+    EVAL-LINE 0 DO 
+        EVAL-LINE ADD-ORDER
+    LOOP ;
+    
+: GET-CASES ( -- read cases from stdin, compute and print profit )
+    EVAL-LINE 0 DO
+        GET-ORDERS
+        INITIALIZE
+        CALC-PROFIT
+        PROFIT ? CR
+    LOOP ;

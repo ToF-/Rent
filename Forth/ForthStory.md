@@ -521,14 +521,14 @@ Reading from the standard input is easy. Here's a word that does that:
 <pre><code style="color:blue;font-family:monospace">
 4096 CONSTANT MAX-LINE
 
-: GET-LINE ( -- n f  read from stdin on pad, leaving lenght and flag )
+: GET-STDIN ( -- n f  read from stdin on pad, leaving lenght and flag )
     PAD MAX-LINE STDIN READ-LINE THROW ;
      
 </code></pre> 
 Here's an example of use:
 <pre><code style="color:black;font-family:monospace">
-GET-LINE ⏎
-Time flies like an arrow ⏎
+GET-STDIN ⏎
+Time flies like an arrow ⏎  \ this line is entered at the prompt of GET-STDIN
 ok
 .S ⏎
  <2> 24 -1  ok
@@ -541,17 +541,52 @@ The simplest way to proceed with the problem input line is to read them and inte
 
 <pre><code style="color:blue;font-family:monospace">
 : EVAL-LINE ( -- read a line from stdin and evaluate it or leave 0 )
-    GET-LINE IF PAD SWAP EVALUATE ELSE 0 THEN ;
+    GET-STDIN IF PAD SWAP EVALUATE ELSE 0 THEN ;
      
 </code></pre> 
 Here's an exemple of input evaluation:
 <pre><code style="color:black;font-family:monospace">
 EVAL-LINE ⏎
-: SQUARE DUP * ; ⏎
+: SQUARE DUP * ; ⏎  \ this line is entered at the prompt
 ok 
 DROP CR 42 SQUARE . ⏎
 1764 ok
      
 </code></pre> 
 
+Now that we can evaluate the lines from the standard input, we can get several orders from there. We first read the number of orders, then loop as many times as specified, reading orders and adding them to the tree. 
 
+<pre><code style="color:blue;font-family:monospace">
+: GET-ORDERS ( -- read orders from stdin and add them )
+    INIT-ACTIONS
+    EVAL-LINE 0 DO 
+        EVAL-LINE ADD-ORDER
+    LOOP ;
+     
+</code></pre> 
+
+The program is almost complete. We need a word that will read the number of cases, and for each case, read the orders, then compute and print the profit.
+<pre><code style="color:blue;font-family:monospace">
+: GET-CASES ( -- read cases from stdin, compute and print profit )
+    EVAL-LINE 0 DO
+        GET-ORDERS
+        INITIALIZE
+        CALC-PROFIT
+        PROFIT ? CR
+    LOOP ;
+     
+</code></pre> 
+To run the program, launch gforth at the prompt, execute our `GET-CASES`  and then quit gforth:
+
+    echo "1
+    4
+    0 5 100
+    3 7 140
+    5 9 80
+    6 9 70" >sample.dat
+
+    gforth Rent.fs -e "GET-CASES BYE" <sample.dat
+    180
+
+And we are done!
+     
