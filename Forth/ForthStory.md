@@ -481,6 +481,8 @@ We must do a search before inserting, and if the key exists, we must take the `M
     ROT {RENT} ACTIONS ACT-UPDATE ;
 
 </code></pre> 
+Computing profit
+----------------
 Now we can make our sample test pass:
 
 <pre><code style="color:green;font-family:monospace">
@@ -497,19 +499,13 @@ PROFIT @  180 ?S
 The `CALC-PROFIT` definition consists in traversing the sequence of actions ordered by time and category.
 Here is the logic to perform for each action:
 
-- if the action category is cash (duration = 0), then discard duration and data, and perform the `CASH` operation.
-- if the action category is rent:
-    - perform a `CASH` operation at the time of action
-    - perform a `RENT` operation with the duration and price
+- if the action is a rent (duration is not zero) :
+    perform a `RENT` action with duration and price
+- if the action is a cash, perform a `CASH` (and get rid of data)
 
 <pre><code style="color:blue;font-family:monospace">
 : PERFORM-ACTION ( d k -- perform the cash or rent action )
-    KEY>ACTION DUP 0= IF
-        DROP CASH DROP 
-    ELSE 
-        OVER CASH 
-        ROT RENT 
-    THEN ;
+    KEY>ACTION ?DUP IF ROT RENT ELSE CASH DROP THEN ;
 
 ' PERFORM-ACTION CONSTANT EXEC
 

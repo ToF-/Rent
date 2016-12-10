@@ -1,5 +1,5 @@
-    \ Rent.fs
-    \ Solving the RENT problem in gforth
+\ Rent.fs
+\ Solving the RENT problem in gforth
 
 REQUIRE ffl/act.fs
 
@@ -56,12 +56,7 @@ ACT-CREATE ACTIONS
     ROT {RENT} ACTIONS ACT-UPDATE ;
 
 : PERFORM-ACTION ( d k -- perform the cash or rent action )
-    KEY>ACTION DUP 0= IF
-        DROP CASH DROP 
-    ELSE 
-        OVER CASH 
-        ROT RENT 
-    THEN ;
+    KEY>ACTION ?DUP IF ROT RENT ELSE CASH DROP THEN ;
 
 ' PERFORM-ACTION CONSTANT EXEC
 
