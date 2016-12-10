@@ -512,6 +512,46 @@ Here is the logic to perform for each action:
 : CALC-PROFIT ( -- compute profit for orders added )
     INITIALIZE
     EXEC ACTIONS ACT-EXECUTE ;
+:</code></pre> 
+
+Reading from the input stream
+-----------------------------
+
+Reading from the standard input is easy. Here's a word that does that:
+<pre><code style="color:blue;font-family:monospace">
+4096 CONSTANT MAX-LINE
+
+: GET-LINE ( -- n f  read from stdin on pad, leaving lenght and flag )
+    PAD MAX-LINE STDIN READ-LINE THROW ;
+     
+</code></pre> 
+Here's an example of use:
+<pre><code style="color:black;font-family:monospace">
+GET-LINE ⏎
+Time flies like an arrow ⏎
+ok
+.S ⏎
+ <2> 24 -1  ok
+CR DROP PAD SWAP TYPE ⏎
+Time flies like an arrow ok
+     
+</code></pre> 
+
+The simplest way to proceed with the problem input line is to read them and interpret them as if they were gforth instructions. Here's the word to do that:
+
+<pre><code style="color:blue;font-family:monospace">
+: EVAL-LINE ( -- read a line from stdin and evaluate it or leave 0 )
+    GET-LINE IF PAD SWAP EVALUATE ELSE 0 THEN ;
+     
+</code></pre> 
+Here's an exemple of input evaluation:
+<pre><code style="color:black;font-family:monospace">
+EVAL-LINE ⏎
+: SQUARE DUP * ; ⏎
+ok 
+DROP CR 42 SQUARE . ⏎
+1764 ok
+     
 </code></pre> 
 
 

@@ -63,3 +63,11 @@ ACT-CREATE ACTIONS
 : CALC-PROFIT ( -- compute profit for orders added )
     INITIALIZE
     EXEC ACTIONS ACT-EXECUTE ;
+
+4096 CONSTANT MAX-LINE
+
+: GET-LINE ( -- n f  read from stdin on pad, leaving lenght and flag )
+    PAD MAX-LINE STDIN READ-LINE THROW ;
+
+: EVAL-LINE ( -- read a line from stdin and evaluate it or leave 0 )
+    GET-LINE IF PAD SWAP EVALUATE ELSE 0 THEN ;
