@@ -28,3 +28,43 @@ VARIABLE PROFIT
     ROT DUP CASH   
     SWAP PROFIT @ + 
     -ROT + PLAN! ;
+
+: ACTION>KEY ( t d -- k  encode time and duration into an action key )
+    SWAP 1000000 * + ;
+
+: KEY>ACTION ( k -- t d  decode a key into an action time and duration )
+    1000000 /MOD SWAP ;
+
+: {CASH} ( t -- d k  prepare data and key for a cash action to be stored )
+    0 ACTION>KEY NIL SWAP ; 
+
+: {RENT} ( t d p -- d k  prepare data and key for a rent action to be stored )
+    -ROT ACTION>KEY  ; 
+
+ACT-CREATE ACTIONS
+: INIT-ACTIONS ( -- empty action tree )
+    ACTIONS ACT-INIT ;
+
+: ACT-UPDATE ( d k tree -- update tree only if k not present or d is greater )
+    2DUP ACT-GET 
+    IF >R ROT R> MAX -ROT THEN
+    ACT-INSERT ;
+
+: ADD-ORDER ( t d p -- stores rent and cash actions for order )
+    -ROT 2DUP
+    + {CASH} ACTIONS ACT-INSERT 
+    ROT {RENT} ACTIONS ACT-UPDATE ;
+
+: PERFORM-ACTION ( d k -- perform the cash or rent action )
+    KEY>ACTION DUP 0= IF
+        DROP CASH DROP 
+    ELSE 
+        OVER CASH 
+        ROT RENT 
+    THEN ;
+
+' PERFORM-ACTION CONSTANT EXEC
+
+: CALC-PROFIT ( -- compute profit for orders added )
+    INITIALIZE
+    EXEC ACTIONS ACT-EXECUTE ;

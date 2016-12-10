@@ -259,17 +259,17 @@ PROFIT @  180 ?S
 </code></pre> 
 And this test passes. It works!
 
-Using an AVL tree
+using an AVL tree
 -----------------
 
 The specs for the requested program mention that time values can be as large as 2000000, so storing the PLAN table in the dictionary won't work. Try the following in gforth:
 
 <pre><code style="color:black;font-family:monospace">
-	CREATE PLAN 2000000 CELLS ALLOT
-	:2: Dictionary overflow
-	CREATE PLAN 2000000 CELLS >>>ALLOT<<<
-	Backtrace:
-	$10568E8E0 throw
+CREATE PLAN 2000000 CELLS ALLOT
+:2: Dictionary overflow
+CREATE PLAN 2000000 CELLS >>>ALLOT<<<
+Backtrace:
+$10568E8E0 throw
 
 </code></pre> 
 Besides, using such large dictionary space for only 10000 time point entries only would be wasteful.
@@ -297,6 +297,25 @@ VARIABLE PROFIT
     PLAN ACT-INIT ;
 
 </code></pre> 
+Now we can verify that our algorithm also works with values much larger than 200:
+
+<pre><code style="color:green;font-family:monospace">
+." maximize profit from cash and rent operations" CR
+INITIALIZE
+0      50000  100 RENT
+30000  70000  140 RENT
+50000             CASH
+50000  90000  80  RENT
+60000  90000  70  RENT
+100000            CASH
+140000            CASH
+150000            CASH
+PROFIT @  180 ?S
+</code></pre> 
+And this test passes, which proves that our AVL tree can handle large keys.
+
+Traversing an AVL tree
+----------------------
 One very useful feature of `act` library is the ability to execute a given definition on each and every node of a given tree. The execution sequence is sorted by key. Let's try it with gforth:
 
 <pre><code style="color:black;font-family:monospace">
@@ -320,3 +339,183 @@ CR TREE ACT-EXECUTE ⏎
  ok
 
 </code></pre> 
+
+Actions key and data
+--------------------
+
+Our program requires that Cash and Rent actions are executed in order. A Cash action at a given time should be performed before any Rent action starting at the same time. Hence we must sort the sequence of actions according to 2 criteria:
+    - time of action
+    - action category, which can be determined by the duration: if duration is 0, then the action is a Cash action, else a Rent action
+
+On the other hand, an AVL tree can store nodes that associate a (1 cell long) key value to a (1 cell long) data value. Each key must be unique in the tree. If we can create a compound key with the time and duration of action, and store each action this way, then the AVL tree can sort the sequence of actions for us. Here's an example:
+
+    action          key         data
+
+    0 5 100 Rent    (0,5)       100
+    3 7 140 Rent    (3,7)       140
+    5 Cash          (5,0)       --
+    5 9 80 Rent     (5,9)       80
+    6 9 70 Rent     (6,9)       70
+    10 Cash         (10,0)      --
+    14 Cash         (14,0)      --
+    15 Cash         (15,0)      --
+
+The word:
+
+    act-insert ( x1 x2 act -- )
+        Insert data x1 with key x2 in the tree
+
+can be used to store an action in a tree, if we manage to store both time and duration on a 1 cell key. In order to do that, we could:
+
+1. multiply action time by 1000000 (since duration is < 1000000)
+2. add duration to this key.
+
+Let's write a test:
+
+
+<pre><code style="color:green;font-family:monospace">
+." an action can be encoded in a key that is ordered" CR
+4807 0000 ACTION>KEY
+4807 1000 ACTION>KEY
+< ?TRUE
+
+</code></pre> 
+
+The word `ACTION-KEY` is very simple:
+
+<pre><code style="color:blue;font-family:monospace">
+: ACTION>KEY ( t d -- k  encode time and duration into an action key )
+    SWAP 1000000 * + ;
+
+</code></pre> 
+Of course we will need to decode a key into an action time and duration:  
+<pre><code style="color:green;font-family:monospace">
+." a key can be decoded into action time and duration" CR
+4807 42 ACTION>KEY
+KEY>ACTION  42 ?S  4807 ?S 
+
+</code></pre> 
+This word is even simpler:
+<pre><code style="color:blue;font-family:monospace">
+: KEY>ACTION ( k -- t d  decode a key into an action time and duration )
+    1000000 /MOD SWAP ;
+
+</code></pre> 
+
+Now we can write the definitions that will allows us to prepare actions for encoding:
+<pre><code style="color:green;font-family:monospace">
+." action data and key for a cash action to be stored are 0 and (t,0)" CR
+4807 {CASH} 
+KEY>ACTION  0  ?S  4807 ?S  
+NIL ?S
+
+</code></pre> 
+
+
+<pre><code style="color:blue;font-family:monospace">
+: {CASH} ( t -- d k  prepare data and key for a cash action to be stored )
+    0 ACTION>KEY NIL SWAP ; 
+
+</code></pre> 
+
+<pre><code style="color:green;font-family:monospace">
+." action data and key for a rent action to be stored are p and (t,d)" CR
+4807 42 100 {RENT} 
+KEY>ACTION  42  ?S  4807 ?S  
+100 ?S
+
+</code></pre> 
+<pre><code style="color:blue;font-family:monospace">
+: {RENT} ( t d p -- d k  prepare data and key for a rent action to be stored )
+    -ROT ACTION>KEY  ; 
+
+</code></pre> 
+Storing Actions
+---------------
+
+We are almost ready to store actions. Let's write a test:
+<pre><code style="color:green;font-family:monospace">
+." adding an order stores a rent action at (t,d) and a cash action at (t+d,0)" CR
+INIT-ACTIONS
+4807 42 100 ADD-ORDER
+4807 42 ACTION>KEY ACTIONS ACT-HAS? ?TRUE
+4849 0  ACTION>KEY ACTIONS ACT-HAS? ?TRUE 
+
+</code></pre> 
+And here is the definition of `ADD-ORDER`:
+<pre><code style="color:blue;font-family:monospace">
+: ADD-ORDER ( t d p -- stores rent and cash actions for order )
+    -ROT 2DUP
+    + {CASH} ACTIONS ACT-INSERT 
+    ROT {RENT} ACTIONS ACT-INSERT ;
+
+</code></pre> 
+This definition works quite well except that when we insert a rent action that is already in the tree, we have to make sure we are not inserting an action for a *smaller price*:
+." inserting an order with same time and duration is allowed only for a better price" CR
+<pre><code style="color:green;font-family:monospace">
+INIT-ACTIONS
+4807 42 100 ADD-ORDER
+4807 42 ACTION>KEY ACTIONS ACT-GET DROP 100 ?S
+4807 42 50 ADD-ORDER
+4807 42 ACTION>KEY ACTIONS ACT-GET DROP 100 ?S
+4807 42 200 ADD-ORDER
+4807 42 ACTION>KEY ACTIONS ACT-GET DROP 200 ?S
+
+</code></pre> 
+And this test fails of course:
+<pre><code style="color:black;font-family:monospace">
+stack contents mismatch:         4807 42 ACTION>KEY ACTIONS ACT-GET DROP 100 ?S
+  expecting 100 and found 50
+
+</code></pre> 
+We must do a search before inserting, and if the key exists, we must take the `MAX` of the stored value with the new value:
+<pre><code style="color:blue;font-family:monospace">
+: ACT-UPDATE ( d k tree -- update tree only if k not present or d is greater )
+    2DUP ACT-GET 
+    IF >R ROT R> MAX -ROT THEN
+    ACT-INSERT ;
+
+: ADD-ORDER ( t d p -- stores rent and cash actions for order )
+    -ROT 2DUP
+    + {CASH} ACTIONS ACT-INSERT 
+    ROT {RENT} ACTIONS ACT-UPDATE ;
+
+</code></pre> 
+Now we can make our sample test pass:
+
+<pre><code style="color:green;font-family:monospace">
+." adding orders then computing profit maximizes profit" CR
+INIT-ACTIONS
+0 5 100 ADD-ORDER
+3 7 140 ADD-ORDER
+5 9 80  ADD-ORDER
+6 9 70  ADD-ORDER
+CALC-PROFIT
+PROFIT @  180 ?S
+
+</code></pre> 
+The `CALC-PROFIT` definition consists in traversing the sequence of actions ordered by time and category.
+Here is the logic to perform for each action:
+
+- if the action category is cash (duration = 0), then discard duration and data, and perform the `CASH` operation.
+- if the action category is rent:
+    - perform a `CASH` operation at the time of action
+    - perform a `RENT` operation with the duration and price
+
+<pre><code style="color:blue;font-family:monospace">
+: PERFORM-ACTION ( d k -- perform the cash or rent action )
+    KEY>ACTION DUP 0= IF
+        DROP CASH DROP 
+    ELSE 
+        OVER CASH 
+        ROT RENT 
+    THEN ;
+
+' PERFORM-ACTION CONSTANT EXEC
+
+: CALC-PROFIT ( -- compute profit for orders added )
+    INITIALIZE
+    EXEC ACTIONS ACT-EXECUTE ;
+</code></pre> 
+
+

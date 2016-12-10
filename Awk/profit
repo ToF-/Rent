@@ -6,6 +6,7 @@ BEGIN { profit = -1 }
 
 /BEGIN/ { if (profit != -1) {
             print profit
+            delete plan
         }
         profit = 0
     }
