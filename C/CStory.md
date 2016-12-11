@@ -79,7 +79,7 @@ the test fails:
     < 140
     make: *** [test] Error 1
 
-Here's a naive way to make it pass:
+Here's a ugly, naive way to make it pass:
 
     #include <stdio.h>
     #define MAXLINE 4096
@@ -102,3 +102,86 @@ Here's a naive way to make it pass:
         return 0;
     }
 
+Let's refactor the code a bit, extracting routines:
+
+    #include <stdio.h>
+    #define MAXLINE 4096
+
+    struct order {
+        int start_time;
+        int duration;
+        int price;
+    };
+
+    char Line[MAXLINE];
+
+    char *get_line() {
+        return fgets(Line, MAXLINE, stdin);
+    }
+
+    int get_int() {
+        int result;
+        sscanf(get_line(), "%d", &result);
+        return result;
+    }
+
+    void get_order(struct order *order) {
+        int s,d,p;
+        sscanf(get_line(), "%d %d %d", &s, &d, &p);
+        order->price = p; 
+    }
+
+    int main() {
+        int max = get_int();
+        for(int i=0; i<max; i++) {
+            get_int();
+            struct order order;
+            get_order(&order);
+            printf("%d\n", order.price );
+        }
+        return 0;
+    }
+
+What about having more than 1 order per case? Let's add a test:
+
+    3
+    1
+    0 5 100
+    1
+    3 7 140
+    2
+    0 5 100
+    3 7 150
+
+    100
+    140
+    150
+
+Here's the code to make this pass. 
+
+    int get_orders() {
+        int max_order = get_int();
+        for(int o=0; o<max_order; o++) {
+            get_order(&Orders[o]);
+        }
+        return max_order;
+    }
+
+    int calc_profit(int max_order) {
+        int profit = 0;
+        for(int o=0; o<max_order; o++) {
+            if(Orders[o].price>profit)
+                profit = Orders[o].price;
+        }
+        return profit;
+    }
+
+    int main() {
+        int max_case = get_int();
+        for(int c=0; c<max_case; c++) {
+            printf("%d\n", calc_profit(get_orders()));   
+        }
+        return 0;
+    }
+
+We simply take the maximum price in the list of orders. 
