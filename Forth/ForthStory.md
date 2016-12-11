@@ -534,9 +534,9 @@ Then we can factor these definitions:
     ACT-GET 0= IF 0 THEN ;
 
 : ACT-! ( n k t -- store value n at position k in tree t if n is greater )
-    2DUP ACT-@
-    >R ROT R> MAX
-    -ROT ACT-INSERT ;
+    2DUP ACT-@ ?DUP IF
+        >R ROT R> MAX -ROT 
+    THEN ACT-INSERT ;
 
 : PLAN@ ( t -- retrieve a value at position t from plan or 0 )
     PLAN ACT-@ ;

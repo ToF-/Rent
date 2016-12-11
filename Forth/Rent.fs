@@ -9,9 +9,9 @@ ACT-CREATE PLAN
     ACT-GET 0= IF 0 THEN ;
 
 : ACT-! ( n k t -- store value n at position k in tree t if n is greater )
-    2DUP ACT-@
-    >R ROT R> MAX
-    -ROT ACT-INSERT ;
+    2DUP ACT-@ ?DUP IF 
+        >R ROT R> MAX -ROT
+ THEN ACT-INSERT ;
 
 VARIABLE PROFIT
 
@@ -30,10 +30,13 @@ VARIABLE PROFIT
     -ROT + PLAN ACT-! ;
 
 : ACTION>KEY ( t d -- k  encode time and duration into an action key )
-    SWAP 1000000 * + ;
+    SWAP 32 LSHIFT OR ;
+
+-1 32 RSHIFT CONSTANT MASK
 
 : KEY>ACTION ( k -- t d  decode a key into an action time and duration )
-    1000000 /MOD SWAP ;
+    DUP 32 RSHIFT
+    SWAP MASK AND ; 
 
 : {CASH} ( t -- d k  prepare data and key for a cash action to be stored )
     0 ACTION>KEY NIL SWAP ; 
