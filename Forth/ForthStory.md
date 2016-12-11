@@ -553,7 +553,7 @@ Then we can factor these definitions:
     ACTIONS ACT-! ;
 
 </code></pre> 
-And even shorter program a bit more by removing these 4 specialized words, calling directly our general words:
+An even shorter program is possible by removing these 4 last words, calling directly the more general words:
 <pre><code style="color:blue;font-family:monospace">
 : CASH ( t -- update profit from plan at a given time )
     PLAN ACT-@ 
