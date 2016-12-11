@@ -5,13 +5,13 @@ REQUIRE ffl/act.fs
 
 ACT-CREATE PLAN 
 
-: PLAN@ ( t -- retrieve a value at position t from plan or 0 )
-    PLAN ACT-GET 0= IF 0 THEN ;
+: ACT-@ ( k t -- n  retrieve a k in tree t or 0 )
+    ACT-GET 0= IF 0 THEN ;
 
-: PLAN! ( n t -- stores value n at position t in plan )
-    DUP PLAN@
-    ROT MAX 
-    SWAP PLAN ACT-INSERT ;
+: ACT-! ( n k t -- store value n at position k in tree t if n is greater )
+    2DUP ACT-@
+    >R ROT R> MAX
+    -ROT ACT-INSERT ;
 
 VARIABLE PROFIT
 
@@ -20,14 +20,14 @@ VARIABLE PROFIT
     PLAN ACT-INIT ;
 
 : CASH ( t -- update profit from plan at a given time )
-    PLAN@ 
+    PLAN ACT-@ 
     PROFIT @ MAX
     PROFIT ! ;
 
 : RENT ( t d p -- update plan according to rent )
     ROT DUP CASH   
     SWAP PROFIT @ + 
-    -ROT + PLAN! ;
+    -ROT + PLAN ACT-! ;
 
 : ACTION>KEY ( t d -- k  encode time and duration into an action key )
     SWAP 1000000 * + ;
@@ -42,18 +42,13 @@ VARIABLE PROFIT
     -ROT ACTION>KEY  ; 
 
 ACT-CREATE ACTIONS
+
 : INIT-ACTIONS ( -- empty action tree )
     ACTIONS ACT-INIT ;
 
-: ACT-UPDATE ( d k tree -- update tree only if k not present or d is greater )
-    2DUP ACT-GET 
-    IF >R ROT R> MAX -ROT THEN
-    ACT-INSERT ;
-
 : ADD-ORDER ( t d p -- stores rent and cash actions for order )
-    -ROT 2DUP
-    + {CASH} ACTIONS ACT-INSERT 
-    ROT {RENT} ACTIONS ACT-UPDATE ;
+    -ROT 2DUP + {CASH} ACTIONS ACT-! 
+    ROT         {RENT} ACTIONS ACT-! ;
 
 : PERFORM-ACTION ( d k -- perform the cash or rent action )
     KEY>ACTION ?DUP IF ROT RENT ELSE CASH DROP THEN ;
@@ -78,7 +73,7 @@ ACT-CREATE ACTIONS
         EVAL-LINE ADD-ORDER
     LOOP ;
     
-: GET-CASES ( -- read cases from stdin, compute and print profit )
+: MAIN ( -- read cases from stdin, compute and print profit )
     EVAL-LINE 0 DO
         GET-ORDERS
         INITIALIZE

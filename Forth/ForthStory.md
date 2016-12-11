@@ -481,8 +481,6 @@ We must do a search before inserting, and if the key exists, we must take the `M
     ROT {RENT} ACTIONS ACT-UPDATE ;
 
 </code></pre> 
-Computing profit
-----------------
 Now we can make our sample test pass:
 
 <pre><code style="color:green;font-family:monospace">
@@ -496,6 +494,82 @@ CALC-PROFIT
 PROFIT @  180 ?S
 
 </code></pre> 
+It works, but the code lacks simplicity. Interestingly, the rules for retrieving and updating nodes in the `ACTIONS` tree:
+
+1. if a time point is not yet in the plan, the value for this time is 0
+2. a value in the plan can be updated only with a greater value
+
+are the same as in the `PLAN` tree:
+
+1. if an action for a time and duration is not yet in the list, the price is considered to be 0
+2. an action for a given time and duration in the list can be updated only with a greater price value
+
+So we might as well use the same logic for the `ACTIONS` tree than for the `PLAN` tree:
+
+<pre><code style="color:blue;font-family:monospace">
+: PLAN@ ( t -- retrieve a value at position t from plan or 0 )
+    PLAN ACT-GET 0= IF 0 THEN ;
+
+: PLAN! ( n t -- stores value n at position t in plan )
+    DUP PLAN@
+    ROT MAX 
+    SWAP PLAN ACT-INSERT ;
+
+: ACTION@ ( k -- d   retrieve action duration or 0 if not found )
+    ACTIONS ACT-GET 0= IF 0 THEN ;
+
+: ACTION! ( d k -- update action tree if k not present or d is greater )
+    DUP ACTION@
+    ROT MAX
+    SWAP ACTIONS ACT-INSERT ;
+
+: ADD-ORDER ( t d p -- stores rent and cash actions for order )
+    -ROT 2DUP + {CASH} ACTION! 
+    ROT         {RENT} ACTION! ;
+
+</code></pre> 
+Then we can factor these definitions:
+<pre><code style="color:blue;font-family:monospace">
+: ACT-@ ( k t -- n  retrieve a k in tree t or 0 )
+    ACT-GET 0= IF 0 THEN ;
+
+: ACT-! ( n k t -- store value n at position k in tree t if n is greater )
+    2DUP ACT-@
+    >R ROT R> MAX
+    -ROT ACT-INSERT ;
+
+: PLAN@ ( t -- retrieve a value at position t from plan or 0 )
+    PLAN ACT-@ ;
+
+: PLAN! ( n t -- stores value n at position t in plan )
+    PLAN ACT-! ;
+
+: ACTION@ ( k -- d   retrieve action duration or 0 if not found )
+    ACTIONS ACT-@ ;
+
+: ACTION! ( d k -- update action tree if k not present or d is greater )
+    ACTIONS ACT-! ;
+
+</code></pre> 
+And even shorten program a bit more by removing these 4 specialized words, calling directly our general words:
+<pre><code style="color:blue;font-family:monospace">
+: CASH ( t -- update profit from plan at a given time )
+    PLAN ACT-@ 
+    PROFIT @ MAX
+    PROFIT ! ;
+
+: RENT ( t d p -- update plan according to rent )
+    ROT DUP CASH   
+    SWAP PROFIT @ + 
+    -ROT + PLAN ACT-! ;
+
+: ADD-ORDER ( t d p -- stores rent and cash actions for order )
+    -ROT 2DUP + {CASH} ACTIONS ACT-! 
+    ROT         {RENT} ACTIONS ACT-! ;
+
+</code></pre> 
+Computing profit
+----------------
 The `CALC-PROFIT` definition consists in traversing the sequence of actions ordered by time and category.
 Here is the logic to perform for each action:
 
@@ -567,7 +641,7 @@ Now that we can evaluate the lines from the standard input, we can get several o
 
 The program is almost complete. We need a word that will read the number of cases, and for each case, read the orders, then compute and print the profit.
 <pre><code style="color:blue;font-family:monospace">
-: GET-CASES ( -- read cases from stdin, compute and print profit )
+: MAIN ( -- read cases from stdin, compute and print profit )
     EVAL-LINE 0 DO
         GET-ORDERS
         INITIALIZE
@@ -576,7 +650,7 @@ The program is almost complete. We need a word that will read the number of case
     LOOP ;
      
 </code></pre> 
-To run the program, launch gforth at the prompt, execute our `GET-CASES`  and then quit gforth:
+To run the program, launch gforth at the prompt, execute our `MAIN`  and then quit gforth:
 
     echo "1
     4
@@ -585,7 +659,7 @@ To run the program, launch gforth at the prompt, execute our `GET-CASES`  and th
     5 9 80
     6 9 70" >sample.dat
 
-    gforth Rent.fs -e "GET-CASES BYE" <sample.dat
+    gforth Rent.fs -e "MAIN BYE" <sample.dat
     180
 
 And we are done!

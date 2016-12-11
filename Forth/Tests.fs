@@ -3,40 +3,40 @@ REQUIRE Rent.fs
 
 T{
         ." values can be stored and retrieved in the plan table" CR
-        4807 42 PLAN!  42 PLAN@ 4807 ?S
-        256  17 PLAN!  17 PLAN@ 256  ?S
+        4807 42 PLAN ACT-!  42 PLAN ACT-@ 4807 ?S
+        256  17 PLAN ACT-!  17 PLAN ACT-@ 256  ?S
 
         ." value can be stored only if greater than value present" CR
-        500  23 PLAN!  23 PLAN@  500 ?S
-        250  23 PLAN!  23 PLAN@  500 ?S  
+        500  23 PLAN ACT-!  23 PLAN ACT-@  500 ?S
+        250  23 PLAN ACT-!  23 PLAN ACT-@  500 ?S  
 
         ." initialize set profit and plan to zeroes" CR
         4807 PROFIT !
-        100 42 PLAN!
+        100 42 PLAN ACT-!
         INITIALIZE
         PROFIT @ ?0
-        42 PLAN@ ?0
+        42 PLAN ACT-@ ?0
 
         ." when updating cash, profit should increase" CR
         INITIALIZE
         PROFIT @ ?0
-        4807 42 PLAN!
+        4807 42 PLAN ACT-!
         42 CASH
         PROFIT @ 4807 ?S
 
         ." when updating cash, profit should not decrease" CR
         INITIALIZE
-        4807 42 PLAN!
-        4096 43 PLAN!
+        4807 42 PLAN ACT-!
+        4096 43 PLAN ACT-!
         42 CASH
         43 CASH
         PROFIT @ 4807 ?S
 
         ." planning rent t d p update plan at t+d with profit + p" CR
         INITIALIZE
-        500 10 PLAN!
+        500 10 PLAN ACT-!
         10 7 450  RENT
-        17 PLAN@  950 ?S
+        17 PLAN ACT-@  950 ?S
 
         ." maximize profit from cash and rent operations" CR
         INITIALIZE
