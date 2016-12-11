@@ -494,6 +494,8 @@ CALC-PROFIT
 PROFIT @  180 ?S
 
 </code></pre> 
+Refactoring
+-----------
 It works, but the code lacks simplicity. Interestingly, the rules for retrieving and updating nodes in the `ACTIONS` tree:
 
 1. if a time point is not yet in the plan, the value for this time is 0
@@ -551,7 +553,7 @@ Then we can factor these definitions:
     ACTIONS ACT-! ;
 
 </code></pre> 
-And even shorten program a bit more by removing these 4 specialized words, calling directly our general words:
+And even shorter program a bit more by removing these 4 specialized words, calling directly our general words:
 <pre><code style="color:blue;font-family:monospace">
 : CASH ( t -- update profit from plan at a given time )
     PLAN ACT-@ 
@@ -638,8 +640,9 @@ Now that we can evaluate the lines from the standard input, we can get several o
     LOOP ;
      
 </code></pre> 
-
-The program is almost complete. We need a word that will read the number of cases, and for each case, read the orders, then compute and print the profit.
+The main program
+----------------
+Our program is almost complete. We need a word that will read the number of cases, and for each case, read the orders, then compute and print the profit.
 <pre><code style="color:blue;font-family:monospace">
 : MAIN ( -- read cases from stdin, compute and print profit )
     EVAL-LINE 0 DO
