@@ -1,0 +1,11 @@
+Tests for rent.c
+# cases
+< 2
+A single order should result in that order price
+< 1
+< 0 5 100
+> 100
+A different order price should make a different profit
+< 1
+< 0 5 110
+> 110

@@ -24,10 +24,10 @@ computation:
     - else
        -   *p* = *p* + 1
 
-Testing the program
--------------------
+Setting up a test harness
+-------------------------
 
-In order to test our program, we use a test input file that will grow as our understanding of the solution grows, and `diff` the results with the expected result. Here's a Makefile:
+As we want to buid the program the TDD way, we need to set up a test harness. The idea here is to run the program on a given input file that will include a growing number of cases, and then to `diff` the output with another file containing the expected results. Here's the Makefile, reflecting that idea:
 
     rent : rent.c
         cc rent.c -o rent
@@ -47,10 +47,27 @@ and a file named `expected.dat`:
 
 then the test will not pass until our program outputs the value `100`.
 
-Producing output values
------------------------
+Let's write a first version of `rent.c` that will make the test fail:
 
-Let's make the test pass real quick:
+    #include <stdio.h>
+
+    int main() {
+        printf("%d\n", 0);
+        return 0;
+    }
+
+`make test` results in:
+
+    ./rent <test.dat >result.dat; diff expected.dat result.dat
+    1c1
+    < 100
+    ---
+    > 0
+    make: *** [test] Error 1
+
+    shell returned 2
+
+Let's make our program pass real quick:
 
     #include <stdio.h>
 
@@ -59,27 +76,60 @@ Let's make the test pass real quick:
         return 0;
     }
 
+And now the test pass:
 
-Of course this is widely incomlete. The program should at least process different orders with different prices:
+    ./rent <test.dat >result.dat; diff expected.dat result.dat
 
-    2
-    1
-    0 5 100
-    1
-    3 7 140
+as shown by the absence of any error message from `make`.
 
+This test harness can be improved so that it doesn't require the updating of two separate files. Instead, we can have a `tests.txt` file describe our tests:
 
-    100
-    140
+    Tests for rent.c
+    # cases
+    < 1
+    A single order should result in that order price
+    < 1
+    < 0 5 100
+
+    > 100
+
+and ask the O.S to split that file and strip the text part, using the `< ` and `> ` prefixes as markers for lines that should go into `test.dat` and `expected.dat` files respectively. Using *sed* in our `Makefile` will do the trick:
+
+    rent : rent.c
+        cc rent.c -o rent
+
+    test : rent tests.txt
+        sed -n -e 's/\(< \)\(.*\)/\2/pw test.dat'     tests.txt >/dev/null
+        sed -n -e 's/\(> \)\(.*\)/\2/pw expected.dat' tests.txt >/dev/null
+        ./rent <test.dat >result.dat
+        diff expected.dat result.dat
+
+Reading several cases
+---------------------
+
+Of course our first version is widely incomplete. The program should at least process different orders with different prices. Let's add a test:
+
+    Tests for rent.c
+    # cases
+    < 2
+    A single order should result in that order price
+    < 1
+    < 0 5 100
+    > 100
+    A different order price should make a different profit
+    < 1
+    < 0 5 110
+    > 110
 
 the test fails:
 
-    ./rent <test.dat >result.dat; diff expected.dat result.dat
     2d1
-    < 140
+    < 110
     make: *** [test] Error 1
 
-Here's a ugly, naive way to make it pass:
+    shell returned 2
+
+Here's a very ugly, quick and dirty way to make it pass:
 
     #include <stdio.h>
     #define MAXLINE 4096
@@ -102,86 +152,3 @@ Here's a ugly, naive way to make it pass:
         return 0;
     }
 
-Let's refactor the code a bit, extracting routines:
-
-    #include <stdio.h>
-    #define MAXLINE 4096
-
-    struct order {
-        int start_time;
-        int duration;
-        int price;
-    };
-
-    char Line[MAXLINE];
-
-    char *get_line() {
-        return fgets(Line, MAXLINE, stdin);
-    }
-
-    int get_int() {
-        int result;
-        sscanf(get_line(), "%d", &result);
-        return result;
-    }
-
-    void get_order(struct order *order) {
-        int s,d,p;
-        sscanf(get_line(), "%d %d %d", &s, &d, &p);
-        order->price = p; 
-    }
-
-    int main() {
-        int max = get_int();
-        for(int i=0; i<max; i++) {
-            get_int();
-            struct order order;
-            get_order(&order);
-            printf("%d\n", order.price );
-        }
-        return 0;
-    }
-
-What about having more than 1 order per case? Let's add a test:
-
-    3
-    1
-    0 5 100
-    1
-    3 7 140
-    2
-    0 5 100
-    3 7 150
-
-    100
-    140
-    150
-
-Here's the code to make this pass. 
-
-    int get_orders() {
-        int max_order = get_int();
-        for(int o=0; o<max_order; o++) {
-            get_order(&Orders[o]);
-        }
-        return max_order;
-    }
-
-    int calc_profit(int max_order) {
-        int profit = 0;
-        for(int o=0; o<max_order; o++) {
-            if(Orders[o].price>profit)
-                profit = Orders[o].price;
-        }
-        return profit;
-    }
-
-    int main() {
-        int max_case = get_int();
-        for(int c=0; c<max_case; c++) {
-            printf("%d\n", calc_profit(get_orders()));   
-        }
-        return 0;
-    }
-
-We simply take the maximum price in the list of orders. 
