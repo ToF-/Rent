@@ -152,3 +152,73 @@ Here's a very ugly, quick and dirty way to make it pass:
         return 0;
     }
 
+Let's refactor this into something decent:
+
+    #include <stdio.h>
+    #define maxline 4096
+
+    char line[maxline];
+
+    char *get_line(char *line) {
+        fgets(line, maxline, stdin);
+        return line;
+    }
+
+    int get_int(char *line) {
+        int result;
+        sscanf(get_line(line), "%d", &result);
+        return result;
+    }
+
+    int main() {
+        int max_cases = get_int(line);
+        for(int c = 0; c < max_cases; c++) {
+            get_line(line); // read #orders, not used yet
+            int start_time;
+            int duration;
+            int price;
+            sscanf(get_line(line), "%d %d %d", &start_time, &duration, &price); 
+            printf("%d\n", price);
+        }
+    return 0;
+    }
+
+Let's move further. If a case contains several orders, and they are all incompatible, then the profit made is equal to the greater price:
+
+    Tests for rent.c
+    # cases
+    < 3
+    A single order should result in that order price
+    < 1
+    < 0 5 100
+    > 100
+    A different order price should make a different profit
+    < 1
+    < 0 5 110
+    > 110
+    With several incompatible orders profit should equal the best price
+    < 3
+    < 0 5 100
+    < 3 7 120
+    < 4 3  90
+    > 120
+
+To make this test pass, we read all the orders in the case, and keep the maximum price:
+
+    int main() {
+        int max_cases = get_int(Line);
+        for(int c = 0; c < max_cases; c++) {
+            int max_orders = get_int(Line);
+            int profit = 0;
+            for(int o = 0; o < max_orders; o++) {
+                int start_time;
+                int duration;
+                int price;
+                sscanf(get_line(Line), "%d %d %d", &start_time, &duration, &price); 
+                if(price > profit)
+                    profit = price;
+            }
+            printf("%d\n", profit);
+        }
+        return 0;
+    }
