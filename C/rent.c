@@ -1,5 +1,18 @@
 #include <stdio.h>
+#include <stdlib.h>
 #define MAXLINE 4096
+#define MAXTIME 20
+#define MAXORDER 10000
+
+int Plan[MAXTIME];
+
+struct order{
+    int start_time;
+    int duration;
+    int price;
+} Orders[MAXORDER];
+
+int MaxOrder;
 
 char Line[MAXLINE];
 
@@ -14,20 +27,59 @@ int get_int(char *line) {
     return result;
 }
 
+int max(int a, int b) {
+    return a > b ? a : b;
+}
+
+int compare_Orders(const void *a, const void *b) {
+    struct order *pa = (struct order *)a;
+    struct order *pb = (struct order *)b;
+    return (pa->start_time - pb->start_time);
+}
+
+void get_Orders() {
+    for(int o = 0; o < MaxOrder; o++) {
+        int start_time; int duration; int price;
+        sscanf(get_line(Line), "%d %d %d", 
+            &Orders[o].start_time, 
+            &Orders[o].duration, 
+            &Orders[o].price); 
+    }
+}
+
+void initialize() {
+    for(int i = 0; i < MAXTIME; i++)
+        Plan[i] = 0;
+    qsort(Orders, MaxOrder, sizeof(struct order), compare_Orders);
+}
+
+void plan() {
+    int profit = 0;
+    for(int o = 0; o < MaxOrder; o++) {
+        int start_time = Orders[o].start_time;
+        int end_time   = Orders[o].start_time + Orders[o].duration;
+        int price      = Orders[o].price;
+        profit = max(profit, Plan[start_time]);
+        Plan[end_time] = max(Plan[end_time], profit + price); 
+    }
+}
+
+int calc_profit() {
+    int profit = 0;
+    for(int t = 0; t < MAXTIME; t++) 
+        if(Plan[t] > profit)
+            profit = Plan[t];
+    return profit;
+}
+
 int main() {
     int max_cases = get_int(Line);
     for(int c = 0; c < max_cases; c++) {
-        int max_orders = get_int(Line);
-        int profit = 0;
-        for(int o = 0; o < max_orders; o++) {
-            int start_time;
-            int duration;
-            int price;
-            sscanf(get_line(Line), "%d %d %d", &start_time, &duration, &price); 
-            if(price > profit)
-                profit = price;
-        }
-        printf("%d\n", profit);
+        MaxOrder = get_int(Line);
+        get_Orders();
+        initialize();
+        plan();
+        printf("%d\n", calc_profit());
     }
     return 0;
 }

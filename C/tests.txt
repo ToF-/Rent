@@ -1,6 +1,6 @@
 Tests for rent.c
 # cases
-< 3
+< 6
 A single order should result in that order price
 < 1
 < 0 5 100
@@ -15,3 +15,22 @@ With several incompatible orders profit should equal the best price
 < 3 7 120
 < 4 3  90
 > 120
+Given ordered orders in a small range on distinct times, profit should be optimal
+< 4
+< 0 5 100
+< 3 7 140
+< 5 9 80
+< 6 9 70
+> 180
+Profit should not decrease if a lower price is given after a greater one for the same time
+< 2
+< 0 5 170
+< 3 2 40
+> 170
+Given unordered orders in a small range, profit should be optimal
+< 4
+< 6 9 70
+< 5 9 85
+< 0 5 100
+< 3 7 140
+> 185

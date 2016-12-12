@@ -139,9 +139,7 @@ Here's a very ugly, quick and dirty way to make it pass:
     int main() {
         fgets(line, MAXLINE, stdin);
         fgets(line, MAXLINE, stdin);
-        int start_time;
-        int duration;
-        int price;
+        int start_time; int duration; int price;
         fgets(line, MAXLINE, stdin);
         sscanf(line, "%d %d %d", &start_time, &duration, &price); 
         printf("%d\n", price);
@@ -174,15 +172,15 @@ Let's refactor this into something decent:
         int max_cases = get_int(line);
         for(int c = 0; c < max_cases; c++) {
             get_line(line); // read #orders, not used yet
-            int start_time;
-            int duration;
-            int price;
+            int start_time; int duration; int price;
             sscanf(get_line(line), "%d %d %d", &start_time, &duration, &price); 
             printf("%d\n", price);
         }
     return 0;
     }
 
+Reading cases with several orders
+---------------------------------
 Let's move further. If a case contains several orders, and they are all incompatible, then the profit made is equal to the greater price:
 
     Tests for rent.c
@@ -211,14 +209,337 @@ To make this test pass, we read all the orders in the case, and keep the maximum
             int max_orders = get_int(Line);
             int profit = 0;
             for(int o = 0; o < max_orders; o++) {
-                int start_time;
-                int duration;
-                int price;
+                int start_time; int duration; int price;
                 sscanf(get_line(Line), "%d %d %d", &start_time, &duration, &price); 
                 if(price > profit)
                     profit = price;
             }
             printf("%d\n", profit);
+        }
+        return 0;
+    }
+
+Computing profit with a sorted order sequence
+---------------------------------------------
+What should be the next step? If the orders are already sorted by ascending start time, and the number of time points doesn't exceed a certain range, we can implement a naive version of the algorithm. Let's write a new test first:
+
+    Tests for rent.c
+    # cases
+    < 4
+    A single order should result in that order price
+    < 1
+    < 0 5 100
+    > 100
+    A different order price should make a different profit
+    < 1
+    < 0 5 110
+    > 110
+    With several incompatible orders profit should equal the best price
+    < 3
+    < 0 5 100
+    < 3 7 120
+    < 4 3  90
+    > 120
+    Given ordered orders in a small range on distinct times, profit should be optimal
+    < 4
+    < 0 5 100
+    < 3 7 140
+    < 5 9 80
+    < 6 9 70
+    > 180
+
+The naive algorithm is quite simple: for each order, update the profit at the start time of the order. then plan an increase in profit by the price, updating the value at the end time of the order. Then traverse the plan in search of the maximum value.
+
+    #define MAXTIME 20
+    int Plan[MAXTIME];
+
+    int main() {
+        int max_cases = get_int(Line);
+        for(int c = 0; c < max_cases; c++) {
+            for(int i = 0; i < MAXTIME; i++)
+                Plan[i] = 0;
+            int max_orders = get_int(Line);
+            int profit = 0;
+            for(int o = 0; o < max_orders; o++) {
+                int start_time; int duration; int price;
+                sscanf(get_line(Line), "%d %d %d", &start_time, &duration, &price); 
+                if(Plan[start_time] > profit)
+                    profit = Plan[start_time];
+                Plan[start_time + duration] = profit + price;
+            }
+            for(int t = 0; t < MAXTIME; t++) 
+                if(Plan[t] > profit)
+                    profit = Plan[t];
+            printf("%d\n", profit);
+        }
+        return 0;
+    }
+
+Updating planned profit with only greater values
+------------------------------------------------
+This might not work if two orders end at the same time and the price of the second one is smaller:
+
+    Tests for rent.c
+    # cases
+    < 5
+    A single order should result in that order price
+    < 1
+    < 0 5 100
+    > 100
+    A different order price should make a different profit
+    < 1
+    < 0 5 110
+    > 110
+    With several incompatible orders profit should equal the best price
+    < 3
+    < 0 5 100
+    < 3 7 120
+    < 4 3  90
+    > 120
+    Given ordered orders in a small range on distinct times, profit should be optimal
+    < 4
+    < 0 5 100
+    < 3 7 140
+    < 5 9 80
+    < 6 9 70
+    > 180
+    Profit should not decrease if a lower price is given after a greater one for the same time
+    < 2
+    < 0 5 170
+    < 3 2 40
+    > 170
+
+This last test fails:
+
+    diff expected.dat result.dat
+    5c5
+    < 170
+    ---
+    > 40
+    make: *** [test] Error 1
+    shell returned 2
+
+To make it pass, we update the plan only if the new value is greater:
+
+    #define MAXTIME 20
+    int Plan[MAXTIME];
+
+    int main() {
+        int max_cases = get_int(Line);
+        for(int c = 0; c < max_cases; c++) {
+            for(int i = 0; i < MAXTIME; i++)
+                Plan[i] = 0;
+            int max_orders = get_int(Line);
+            int profit = 0;
+            for(int o = 0; o < max_orders; o++) {
+                int start_time; int duration; int price;
+                sscanf(get_line(Line), "%d %d %d", &start_time, &duration, &price); 
+                if(Plan[start_time] > profit)
+                    profit = Plan[start_time];
+                if(profit + price > Plan[start_time + duration])
+                    Plan[start_time + duration] = profit + price;
+            }
+            for(int t = 0; t < MAXTIME; t++) 
+                if(Plan[t] > profit)
+                    profit = Plan[t];
+            printf("%d\n", profit);
+        }
+        return 0;
+    }
+
+Let's refactor our program a bit:
+
+    #define MAXTIME 20
+    int Plan[MAXTIME];
+
+    void initialize() {
+        for(int i = 0; i < MAXTIME; i++)
+            Plan[i] = 0;
+    }
+
+    int max(int a, int b) {
+        return a > b ? a : b;
+    }
+
+    int calc_profit() {
+        int profit = 0;
+        for(int t = 0; t < MAXTIME; t++) 
+            if(Plan[t] > profit)
+                profit = Plan[t];
+        return profit;
+    }
+
+    int main() {
+        int max_cases = get_int(Line);
+        for(int c = 0; c < max_cases; c++) {
+            initialize();
+
+            int max_orders = get_int(Line);
+            int profit = 0;
+            for(int o = 0; o < max_orders; o++) {
+                int start_time; int duration; int price;
+                sscanf(get_line(Line), "%d %d %d", &start_time, &duration, &price); 
+                profit = max(profit, Plan[start_time]);
+                Plan[start_time + duration] = max(Plan[start_time + duration], profit + price); 
+            }
+            printf("%d\n", calc_profit());
+        }
+        return 0;
+    }
+
+Reading unsorted sequence of orders
+-----------------------------------
+Our program won't work if we get orders in an different sequence than ordered by start time. Let's write a test:
+
+    Given unordered orders in a small range, profit should be optimal
+    < 4
+    < 6 9 70
+    < 5 9 85
+    < 0 5 100
+    < 3 7 140
+    > 185
+
+Of course it fails:
+
+    diff expected.dat result.dat
+    6c6
+    < 185
+    ---
+    > 140
+    make: *** [test] Error 1
+    shell returned 2
+
+The way to remedy this is to sort the orders by start time before planning the rentals. We can do this with the standard library `qsort` function. This requires than we *store* the orders in an array, instead of processing them as we read them on the input stream.
+
+    #define MAXORDER 10000
+    struct order{
+        int start_time;
+        int duration;
+        int price;
+    } Orders[MAXORDER];
+
+    int MaxOrder;
+
+    int compare_orders(const void *a, const void *b) {
+        struct order *pa = (struct order *)a;
+        struct order *pb = (struct order *)b;
+        return (pa->start_time - pb->start_time);
+    }
+
+    void get_orders() {
+        for(int o = 0; o < MaxOrder; o++) {
+            int start_time; int duration; int price;
+            sscanf(get_line(Line), "%d %d %d", 
+                &Orders[o].start_time, 
+                &Orders[o].duration, 
+                &Orders[o].price); 
+        }
+    }
+
+    int main() {
+        int max_cases = get_int(Line);
+        for(int c = 0; c < max_cases; c++) {
+            initialize();
+            MaxOrder = get_int(Line);
+            get_orders();
+            qsort(Orders, MaxOrders, sizeof(struct order), compare_orders);
+            int profit = 0;
+            for(int o = 0; o < MaxOrder; o++) {
+                int start_time = Orders[o].start_time;
+                int end_time   = Orders[o].start_time + Orders[o].duration;
+                int price      = Orders[o].price;
+                profit = max(profit, Plan[start_time]);
+                Plan[end_time] = max(Plan[end_time], profit + price); 
+            }
+            printf("%d\n", calc_profit());
+        }
+        return 0;
+    }
+
+All the tests pass. Let's refactor the program a bit to clarify the articulation of its logic in different parts:
+
+    #include <stdio.h>
+    #include <stdlib.h>
+    #define MAXLINE 4096
+    #define MAXTIME 20
+    #define MAXORDER 10000
+
+    int Plan[MAXTIME];
+
+    struct order{
+        int start_time;
+        int duration;
+        int price;
+    } Orders[MAXORDER];
+
+    int MaxOrder;
+
+    char Line[MAXLINE];
+
+    char *get_line(char *line) {
+        fgets(line, MAXLINE, stdin);
+        return line;
+    }
+
+    int get_int(char *line) {
+        int result;
+        sscanf(get_line(line), "%d", &result);
+        return result;
+    }
+
+    int max(int a, int b) {
+        return a > b ? a : b;
+    }
+
+    int compare_Orders(const void *a, const void *b) {
+        struct order *pa = (struct order *)a;
+        struct order *pb = (struct order *)b;
+        return (pa->start_time - pb->start_time);
+    }
+
+    void get_Orders() {
+        for(int o = 0; o < MaxOrder; o++) {
+            int start_time; int duration; int price;
+            sscanf(get_line(Line), "%d %d %d", 
+                &Orders[o].start_time, 
+                &Orders[o].duration, 
+                &Orders[o].price); 
+        }
+    }
+
+    void initialize() {
+        for(int i = 0; i < MAXTIME; i++)
+            Plan[i] = 0;
+        qsort(Orders, MaxOrder, sizeof(struct order), compare_Orders);
+    }
+
+    void plan() {
+        int profit = 0;
+        for(int o = 0; o < MaxOrder; o++) {
+            int start_time = Orders[o].start_time;
+            int end_time   = Orders[o].start_time + Orders[o].duration;
+            int price      = Orders[o].price;
+            profit = max(profit, Plan[start_time]);
+            Plan[end_time] = max(Plan[end_time], profit + price); 
+        }
+    }
+
+    int calc_profit() {
+        int profit = 0;
+        for(int t = 0; t < MAXTIME; t++) 
+            if(Plan[t] > profit)
+                profit = Plan[t];
+        return profit;
+    }
+
+    int main() {
+        int max_cases = get_int(Line);
+        for(int c = 0; c < max_cases; c++) {
+            MaxOrder = get_int(Line);
+            get_Orders();
+            initialize();
+            plan();
+            printf("%d\n", calc_profit());
         }
         return 0;
     }
