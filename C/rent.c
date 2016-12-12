@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #define MAXLINE 4096
 #define MAXTIME 20
-#define MAXORDER 10000
+#define MAXORDER 20000
 
 int Plan[MAXTIME];
 
@@ -41,10 +41,14 @@ void get_Orders() {
     for(int o = 0; o < MaxOrder; o++) {
         int start_time; int duration; int price;
         sscanf(get_line(Line), "%d %d %d", 
-            &Orders[o].start_time, 
-            &Orders[o].duration, 
-            &Orders[o].price); 
+            &Orders[o*2].start_time, 
+            &Orders[o*2].duration, 
+            &Orders[o*2].price); 
+            Orders[o*2+1].start_time = Orders[o*2].start_time + Orders[o*2].duration;
+            Orders[o*2+1].duration = 0;
+            Orders[o*2+1].price = 0; 
     }
+    MaxOrder*=2;
 }
 
 void initialize() {
@@ -53,7 +57,7 @@ void initialize() {
     qsort(Orders, MaxOrder, sizeof(struct order), compare_Orders);
 }
 
-void plan() {
+int calc_profit() {
     int profit = 0;
     for(int o = 0; o < MaxOrder; o++) {
         int start_time = Orders[o].start_time;
@@ -62,13 +66,6 @@ void plan() {
         profit = max(profit, Plan[start_time]);
         Plan[end_time] = max(Plan[end_time], profit + price); 
     }
-}
-
-int calc_profit() {
-    int profit = 0;
-    for(int t = 0; t < MAXTIME; t++) 
-        if(Plan[t] > profit)
-            profit = Plan[t];
     return profit;
 }
 
@@ -78,7 +75,6 @@ int main() {
         MaxOrder = get_int(Line);
         get_Orders();
         initialize();
-        plan();
         printf("%d\n", calc_profit());
     }
     return 0;

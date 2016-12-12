@@ -1,6 +1,6 @@
 Tests for rent.c
 # cases
-< 6
+< 7
 A single order should result in that order price
 < 1
 < 0 5 100
@@ -34,3 +34,9 @@ Given unordered orders in a small range, profit should be optimal
 < 0 5 100
 < 3 7 140
 > 185
+Given orders that are all compatible but distant, profit should be the sum of prices
+< 3
+< 0 4 105
+< 5 5 70
+< 12 3 25 
+> 200

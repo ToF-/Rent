@@ -543,3 +543,89 @@ All the tests pass. Let's refactor the program a bit to clarify the articulation
         }
         return 0;
     }
+
+As simple as it might look, this solution still doesn't work fully yet. During the planning loop, we update profit only with the values in each order start time, and not in the end time. That is because we traverse the array in start_time order, so for example in the following test:
+
+    Given orders that are all compatible but distant, profit should be the sum of prices
+    < 3
+    < 0 4 105
+    < 5 5 70
+    < 12 3 25 
+    > 200
+
+the plan will be set to 105 in position 4, but when we process the second order, the plan at position 5 is still 0. The same is happening at position 12, so the profit doesn't accumulate.
+
+    diff expected.dat result.dat
+    7c7
+    < 200
+    ---
+    > 105
+    make: *** [test] Error 1
+    shell returned 2
+
+The remedy consists in uptading the profit at every time point, not only start times. One way to do this is to store one supplementary order record in the array of orders for each order in the input: given a first order starting at t and having duration d, this second order will start at t+d, and will have a duration of 0, and an equally null price.
+
+    #define MAXORDER 20000
+
+    . . .
+
+    void get_Orders() {
+        for(int o = 0; o < MaxOrder; o++) {
+            int start_time; int duration; int price;
+            sscanf(get_line(Line), "%d %d %d", 
+                &Orders[o*2].start_time, 
+                &Orders[o*2].duration, 
+                &Orders[o*2].price); 
+                Orders[o*2+1].start_time = Orders[o*2].start_time + Orders[o*2].duration;
+                Orders[o*2+1].duration = 0;
+                Orders[o*2+1].price = 0; 
+        }
+        MaxOrder*=2;
+    }
+
+Now when the loop traverses the orders array in sequence for our last test, the following happens: 
+
+    t d p       profit    update
+    0 4 105 :   0         at 4: 105
+    4 0   0 :   105
+    5 5  70 :   105       at 10: 175
+    10 0  0 :   175
+    12 3 25 :   175       at 15: 200
+    15 0  0 :   200 
+
+This process also work in the case where orders are not compatible. Here's another example, with orders 0 5 100, 3 7 140, 5 9 80, 6 9 70 :
+
+    t d p       profit    update
+    0 5 100 :   0         at 5: 100
+    3 7 140 :   0         at 10:140
+    5 0   0 :   100       
+    5 9  80 :   100       at 14:180
+    6 9  70 :   100       at 15:170
+    10 0  0 :   140
+    14 0  0 :   180  
+    15 0  0 :   180 
+
+The interesting point in that solution is that the profit gets computed during the traversal, there is no more a need to search for the max profit value.
+ 
+    int calc_profit() {
+        int profit = 0;
+        for(int o = 0; o < MaxOrder; o++) {
+            int start_time = Orders[o].start_time;
+            int end_time   = Orders[o].start_time + Orders[o].duration;
+            int price      = Orders[o].price;
+            profit = max(profit, Plan[start_time]);
+            Plan[end_time] = max(Plan[end_time], profit + price); 
+        }
+        return profit;
+    }
+
+    int main() {
+        int max_cases = get_int(Line);
+        for(int c = 0; c < max_cases; c++) {
+            MaxOrder = get_int(Line);
+            get_Orders();
+            initialize();
+            printf("%d\n", calc_profit());
+        }
+        return 0;
+    }
