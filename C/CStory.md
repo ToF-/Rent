@@ -630,8 +630,8 @@ The interesting point in that solution is that the profit gets computed during t
         return 0;
     }
 
-Allowing for large values of time
----------------------------------
+Allowing for large range of time
+--------------------------------
  
 This solution works, but only for a range of time values between 0 and 19. The problem description specifies that start_time is in the range [0..1000000] and duration also. We could extend the plan array to 2000000, but given tnat we should have no more than 20000 distinct time points, that solution would be a waste of 7MB of memory. An alternate way to map time points to int values is to define the plan as an array of cells instead of ints:
 
