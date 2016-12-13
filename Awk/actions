@@ -10,3 +10,5 @@ BEGIN { case = -2 }
          } 
 /[0-9]+ [0-9]+ [0-9]+/ { printf "%02d %07d CASH\n%02d %07d RENT %07d %07d\n", case, $1+$2, case, $1, $2, $3 }
 
+
+
