@@ -1,10 +1,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 #define MAXLINE 4096
-#define MAXTIME 20
 #define MAXORDER 20000
 
-int Plan[MAXTIME];
+struct cell{
+    int time;
+    int value;
+} Plan[MAXORDER];
+
+int MaxCell;
 
 struct order{
     int start_time;
@@ -52,9 +56,34 @@ void get_Orders() {
 }
 
 void initialize() {
-    for(int i = 0; i < MAXTIME; i++)
-        Plan[i] = 0;
     qsort(Orders, MaxOrder, sizeof(struct order), compare_Orders);
+    MaxCell = 0;
+    int t = -1;
+    for(int i = 0; i < MaxOrder; i++) 
+        if(Orders[i].start_time != t) {
+            t = Orders[i].start_time;
+            Plan[MaxCell].time = t;
+            Plan[MaxCell].value = 0;
+            MaxCell++;
+        }
+}
+
+struct cell *plan(int time) {
+    int l = 0;
+    int h = MaxCell-1;
+    int m;
+    while(l <= h) {
+        m = l + (h - l) / 2;
+        if(Plan[m].time == time)
+            return &Plan[m];
+        else {
+            if(Plan[m].time < time)
+                l = m + 1;
+            else
+                h = m - 1;
+        }
+    }
+    return 0;
 }
 
 int calc_profit() {
@@ -63,8 +92,9 @@ int calc_profit() {
         int start_time = Orders[o].start_time;
         int end_time   = Orders[o].start_time + Orders[o].duration;
         int price      = Orders[o].price;
-        profit = max(profit, Plan[start_time]);
-        Plan[end_time] = max(Plan[end_time], profit + price); 
+        profit = max(profit, plan(start_time)->value);
+        struct cell *p = plan(end_time);
+        p->value = max(p->value, profit + price);
     }
     return profit;
 }

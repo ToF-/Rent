@@ -629,3 +629,67 @@ The interesting point in that solution is that the profit gets computed during t
         }
         return 0;
     }
+
+Allowing for large values of time
+---------------------------------
+ 
+This solution works, but only for a range of time values between 0 and 19. The problem description specifies that start_time is in the range [0..1000000] and duration also. We could extend the plan array to 2000000, but given tnat we should have no more than 20000 distinct time points, that solution would be a waste of 7MB of memory. An alternate way to map time points to int values is to define the plan as an array of cells instead of ints:
+
+    struct cell{
+        int time;
+        int value;
+    } Plan[MAXORDER];
+
+    int MaxCell;
+
+This array will be filled with each unique time point:
+
+    void initialize() {
+        qsort(Orders, MaxOrder, sizeof(struct order), compare_Orders);
+        MaxCell = 0;
+        int t = -1;
+        for(int i = 0; i < MaxOrder; i++) 
+            if(Orders[i].start_time != t) {
+                t = Orders[e].start_time;
+                Plan[MaxCell].time = t;
+                Plan[MaxCell].value = 0;
+                MaxCell++;
+            }
+    }
+
+This plan allow for a binary seach of a given time value:
+
+    struct cell *plan(int time) {
+        int l = 0;
+        int h = MaxCell-1;
+        int m;
+        while(l <= h) {
+            m = l + (h - l) / 2;
+            if(Plan[m].time == time)
+                return &Plan[m];
+            else {
+                if(Plan[m].time < time)
+                    l = m + 1;
+                else
+                    h = m - 1;
+            }
+        }
+        return 0;
+    }
+
+Computing the profit is done the same way except for accessing the plan which is now done in O(Log(N)) rather than O(1) time: 
+
+    int calc_profit() {
+        int profit = 0;
+        for(int o = 0; o < MaxOrder; o++) {
+            int start_time = Orders[o].start_time;
+            int end_time   = Orders[o].start_time + Orders[o].duration;
+            int price      = Orders[o].price;
+            profit = max(profit, plan(start_time)->value);
+            struct cell *p = plan(end_time);
+            p->value = max(p->value, profit + price);
+        }
+        return profit;
+    }
+ 
+
