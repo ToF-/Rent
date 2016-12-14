@@ -38,7 +38,12 @@ int max(int a, int b) {
 int compare_Orders(const void *a, const void *b) {
     struct order *pa = (struct order *)a;
     struct order *pb = (struct order *)b;
-    return (pa->start_time - pb->start_time);
+    if (pa->start_time < pb->start_time)
+        return -1;
+    else if (pa->start_time > pb->start_time)
+        return 1;
+    else 
+        return (pa->duration - pb->duration);
 }
 
 void get_Orders() {
@@ -92,9 +97,12 @@ int calc_profit() {
         int start_time = Orders[o].start_time;
         int end_time   = Orders[o].start_time + Orders[o].duration;
         int price      = Orders[o].price;
-        profit = max(profit, plan(start_time)->value);
-        struct cell *p = plan(end_time);
-        p->value = max(p->value, profit + price);
+        if(Orders[o].duration){
+            struct cell *p = plan(end_time);
+            p->value = max(p->value, profit + price);
+        }
+        else
+            profit = max(profit, plan(start_time)->value);
     }
     return profit;
 }

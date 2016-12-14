@@ -692,4 +692,33 @@ Computing the profit is done the same way except for accessing the plan which is
         return profit;
     }
  
+This solution can be optimized even, because there is no need to update profit at each order if we sort the array or orders by start time *then* duration, because then the "empty" order for a given time will always be processed before a rent order. 
 
+    int compare_Orders(const void *a, const void *b) {
+        struct order *pa = (struct order *)a;
+        struct order *pb = (struct order *)b;
+        if (pa->start_time < pb->start_time)
+            return -1;
+        else if (pa->start_time > pb->start_time)
+            return 1;
+        else 
+            return (pa->duration - pb->duration);
+    }
+
+    int calc_profit() {
+        int profit = 0;
+        for(int o = 0; o < MaxOrder; o++) {
+            int start_time = Orders[o].start_time;
+            int end_time   = Orders[o].start_time + Orders[o].duration;
+            int price      = Orders[o].price;
+            if(Orders[o].duration){
+                struct cell *p = plan(end_time);
+                p->value = max(p->value, profit + price);
+            }
+            else
+                profit = max(profit, plan(start_time)->value);
+        }
+        return profit;
+    }
+
+Thus the number of binary searches is reduced to half the number of orders in the array.
