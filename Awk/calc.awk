@@ -16,9 +16,13 @@ function cash(time) {
 }
 
 function rent(time,duration,price) {
-    cash(time) 
-    t = key(time + duration)
-    plan[t] = max(profit + price, plan[t]) 
+    if(duration) {
+        t = key(time + duration)
+        plan[t] = max(profit + price, plan[t]) 
+    }
+    else { 
+        cash(time) 
+    }
 }
 
 function key(t) {
