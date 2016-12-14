@@ -201,13 +201,13 @@ And P is now equal to the maximum profit value we can draw from the orders:
 
 This algorithm can be translated into a program quite simply:
 
-- for each order (t,d,p) in the input, create two records of actions to perform :
-    - cash action at t+d
-    - rent action at t to plan until t+d, for price p
-- sort these action by time then action category (for a given time, perform cash actions first) 
-- starting with P = O and an empty plan mapping time to values, traverse the sequence of actions:
-    - if cash (t) : update P with value at plan[t]
-    - if rent (t,d,p) : update plan[t+d] with P+p
+- for each order *(t,d,p)* in the input, create two records of actions to perform :
+    - *cash* action at *t+d*
+    - *rent* action at *t* to plan until *t+d*, for price *p*
+- sort these actions by time then action category (for a given time, perform *cash* action first) 
+- starting with *P* = O and an empty plan mapping time to values, traverse the sequence of actions:
+    - if *cash (t)* : update *P* with value at *plan[t]*
+    - if *rent (t,d,p)* : update *plan[t+d]* with *P+p*
 
-where update(x,y) means : the value x← max (x,y)
-At the end of the traversal, P is equal to the maximum profit.O
+where *update(x,y)* means : the value *x← max (x,y)*
+At the end of the traversal, *P* is equal to the maximum profit.
