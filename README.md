@@ -210,4 +210,5 @@ This algorithm can be translated into a program quite simply:
     - if *rent (t,d,p)* : update *plan[t+d]* with *P+p*
 
 where *update(x,y)* means : the value *x← max (x,y)*
+
 At the end of the traversal, *P* is equal to the maximum profit.
