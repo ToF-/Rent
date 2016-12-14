@@ -25,8 +25,7 @@ VARIABLE PROFIT
     PROFIT ! ;
 
 : RENT ( t d p -- update plan according to rent )
-    ROT DUP CASH   
-    SWAP PROFIT @ + 
+    PROFIT @ + 
     -ROT + PLAN ACT-! ;
 
 : ACTION>KEY ( t d -- k  encode time and duration into an action key )

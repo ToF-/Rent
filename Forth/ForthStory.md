@@ -218,26 +218,23 @@ To make this test past, we change the definition to keep the maximum value betwe
     PROFIT ! ;
 
 </code></pre>
-Planning a rent at a given time for a given duration and price, amounts to:
-
-- update the current profit value at the *start time*
-- update the plan at the end time with the value of *profit* + *price*
+Assuming that the profit value at a given time is accurate, planning a rent at this time for a given duration and price, amounts to update the plan at the end time with the value of *profit* + *price*
 
 Let's write a test:
 <pre><code style="color:green;font-family:monospace">
 ." planning rent t d p update plan at t+d with profit + p" CR
 INITIALIZE
 500 10 PLAN!
+10 CASH
 10 7 450  RENT
 17 PLAN@  950 ?S
   
 </code></pre>
-Our definition of `RENT` should update profit, add it to the price then update the plan at the end time:
+Our definition of `RENT` should add the current profit to the price then update the plan at the end time:
 
 <pre><code style="color:blue;font-family:monospace">
 : RENT ( t d p -- update plan according to rent )
-    ROT DUP CASH   
-    SWAP PROFIT @ + 
+    PROFIT @ + 
     -ROT + PLAN! ;
 
 </code></pre>
@@ -561,8 +558,7 @@ An even shorter program is possible by removing these 4 last words, calling dire
     PROFIT ! ;
 
 : RENT ( t d p -- update plan according to rent )
-    ROT DUP CASH   
-    SWAP PROFIT @ + 
+    PROFIT @ + 
     -ROT + PLAN ACT-! ;
 
 : ADD-ORDER ( t d p -- stores rent and cash actions for order )
