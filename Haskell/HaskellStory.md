@@ -138,4 +138,46 @@ Now we can apply this function to a correctly ordered sequence of actions:
             (profit,plan) = foldl perform (0, empty) actions
         profit `shouldBe` 180
 
+Converting Input Values into Actions
+------------------------------------
 
+Each order in the input stream is defined by 3 integers value representing the *start time*, *duration* and *price* of the order, and must be converted into two actions that will be added to the list of actions for a given case.
+
+    describe "Case" $ do
+        it "should be filled with 2 actions for each order in the case" $ do
+            addActions [0, 5, 100] [] `shouldBe` [Cash 5, Rent 0 5 100]                         
+
+To make this test pass, we need to make the `Action` type an instance of `Eq` and `Show`, and then write the  `addActions` function:
+
+    data Action = Cash Time | Rent Time Time Money
+        deriving (Eq,Show)
+
+    addActions :: [Int] -> [Action] -> [Action]
+    addActions [t,d,p] as = Cash (t+d) : Rent t d p : as
+
+Then we need a function that will convert all the orders in a list into a sorted list of actions:
+
+    it "should be contain all the sorted actions for a case" $ do
+        actions [[0, 5, 100],[3, 7, 140],[5, 9, 80],[6, 9, 70]] `shouldBe` 
+             [Rent 0 5 100
+             ,Rent 3 7 140
+             ,Cash 5
+             ,Rent 5 9 80
+             ,Rent 6 9 70
+             ,Cash 10
+             ,Cash 14
+             ,Cash 15]
+
+Now the `Action` type also need to be an instance of the class `Ord`:
+
+    data Action = Cash Time | Rent Time Time Money
+        deriving (Eq, Show, Ord)
+
+Actions in the list should be sorted by time then category of action, i.e. for a same given time, the cash action should precede any rent action. We get the list of actions by `fold`ing our `addActions` function of the list of orders, and order then sorting this list on a criterion based on a pair of `Int`s representing the time and category of the action:
+
+    actions :: [[Int]] -> [Action]
+    actions = sortBy (comparing timeAndCategory) . foldr addActions []
+        where
+        timeAndCategory :: Action -> (Int, Int)
+        timeAndCategory (Cash t)     = (t, 0)
+        timeAndCategory (Rent t _ _) = (t, 1) 

@@ -38,4 +38,16 @@ main = hspec $ do
                           ,Cash 15]
                 (profit,plan) = foldl perform (0, empty) actions
             profit `shouldBe` 180
-                        
+    describe "Case" $ do
+        it "should be filled with 2 actions for each order in the case" $ do
+            addActions [0, 5, 100] [] `shouldBe` [Cash 5, Rent 0 5 100]                         
+        it "should be contain all the sorted actions for a case" $ do
+            actions [[0, 5, 100],[3, 7, 140],[5, 9, 80],[6, 9, 70]] `shouldBe` 
+                 [Rent 0 5 100
+                 ,Rent 3 7 140
+                 ,Cash 5
+                 ,Rent 5 9 80
+                 ,Rent 6 9 70
+                 ,Cash 10
+                 ,Cash 14
+                 ,Cash 15]

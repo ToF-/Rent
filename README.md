@@ -132,6 +132,8 @@ Let's apply those rules to the case given in the request as an example:
 - *P(15) ≥ P(14)  ⇒ P(15) ≥ 180* (r.2)
 - *P = P(15)      ⇒ P ≥ 180*
 
+Algorithm
+---------
 Using the four rules suggests the following algorithm for solving our problem:
 
 1. Planning the orders
