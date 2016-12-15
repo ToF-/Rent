@@ -51,3 +51,9 @@ main = hspec $ do
                  ,Cash 10
                  ,Cash 14
                  ,Cash 15]
+    describe "profit" $ do
+        it "should compute the profit for a list of orders" $ do
+            profit [[0, 5, 100],[3, 7, 140],[5, 9, 80],[6, 9, 70]] `shouldBe` 180
+    describe "solve" $ do
+        it "should solve several cases, and ignore the first line of input" $ do
+            solve [[2],[1],[0, 5, 100],[2],[0, 5, 120],[3, 7, 140]] `shouldBe` [100, 140]

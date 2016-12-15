@@ -34,4 +34,11 @@ perform :: (Money, Plan) -> Action -> (Money, Plan)
 perform (profit,plan) (Rent t d p) = (profit, update (profit+p) (t+d) plan)
 perform (profit,plan) (Cash t)     = (max profit (value t plan), plan)
 
+profit :: [[Int]] -> Money
+profit = fst . foldl perform (0,empty) . actions
 
+solve :: [[Int]] -> [Money]
+solve = solutions . tail 
+    where 
+    solutions [] = []
+    solutions ([n]:orders) = profit (take n orders):solutions (drop n orders) 
