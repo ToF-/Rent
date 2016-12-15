@@ -1,3 +1,4 @@
+
 Designing a solution in Haskell to the Rent problem involves tackling these problems:
 
 - updating and getting values from a *plan*, which is a mapping from time to money
@@ -217,4 +218,97 @@ Having discarded the very first line of the list, we extract the number of order
         solutions [] = []
         solutions ([n]:orders) = profit (take n orders):solutions (drop n orders) 
 
-The input stream being read is a String, so we need to 
+The input stream being read is a String, so we need to convert that into lines then lists of ints:
+
+    describe "process" $ do
+        it "should process the input string and produce and output string" $ do
+            process "2\n1\n0 5 100\n2\n0 5 12\n3 7 140\n" `shouldbe` "100\n140\n"
+
+The job of the `process` function is to:
+- break the String into separate lines
+- for each line
+    - separate the line into words
+    - convert the words into int
+- apply the `solve` function to that list of lists of ints
+- convert back the results into strings
+- assemble the lines into a single String
+
+    process :: String -> String
+    process = unlines . map show . solve . map (map read . words) . lines 
+
+Assembling a First Version
+--------------------------
+
+Assembling all of this into a main program is very simple:
+
+    -- Main.hs
+    module Main where
+    import Rent
+
+    main = interact process
+
+We can build the pogram with `ghc --make` :
+
+    ghc --make Main.hs -o rent
+
+And then test it on any data file:
+
+    echo "1
+    4
+    0 5 100
+    3 7 140
+    5 9 80
+    6 9 70" >sample.dat
+    ./rent <sample.dat ⏎
+    180
+
+Solving Efficiency Problems
+---------------------------
+
+If we run our program with a large data set, it is of course terribly slow. Applying `rent` on 300000 lines of input takes nearly one minute. There are two factors:
+
+- the `lookup` function used for updating and retriving the plan takes a time O(N) to find a value in a list of pairs.
+- the `String` being a list of Chars is very inefficient
+
+Let's start with the second factor, replacing `String` with `ByteStrings` :
+
+    import Data.ByteString (ByteString)
+    import qualified Data.ByteString.Char8 as BS
+
+(These imports should be included in each program: `Rent.hs`, `Spec.hs` and `Main.hs`)
+
+We change the tests to accomodate for `ByteString`:
+
+    describe "process" $ do
+        it "should process the input string and produce and output string" $ do
+            process (BS.pack "2\n1\n0 5 100\n2\n0 5 12\n3 7 140\n") `shouldBe` (BS.pack "100\n140\n")
+
+and then change the Rent module:
+
+    process :: ByteString -> ByteString
+    process = BS.unlines . map (BS.pack . show) . solve . map (map (read . BS.unpack) . BS.words) . BS.lines 
+
+and the Main module:
+
+
+    -- Main.hs
+    module Main where
+    import Rent
+    import Data.ByteString (ByteString)
+    import qualified Data.ByteString.Char8 as BS
+
+    main = BS.interact process
+
+The second source of optimization consist in using a `Map` instead of a list of pairs as the plan data type:
+
+    import Data.Map (Map, empty, insertWith, findWithDefault)
+
+    value :: Time -> Plan -> Money
+    value = findWithDefault 0
+
+    update :: Money -> Time -> Plan -> Plan
+    update v t = insertWith max t v  
+
+And now the processing of 300000 lines takes only 8 seconds.
+
+
