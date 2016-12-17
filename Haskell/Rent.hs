@@ -1,21 +1,20 @@
 module Rent where
 import Data.List (sortBy)
 import Data.Ord (comparing)
+import Data.ByteString (ByteString)
+import qualified Data.ByteString.Char8 as BS
+import Data.Map (Map, empty, insertWith, findWithDefault)
 
-type Plan = [(Time, Money)]
+type Plan = Map Time Money
 type Time = Int
 type Money = Int
 
-empty :: Plan
-empty = []
 
 value :: Time -> Plan -> Money
-value t p = case lookup t p of
-    Just v  -> v
-    Nothing -> 0
+value = findWithDefault 0
 
 update :: Money -> Time -> Plan -> Plan
-update v t p = (t,max v (value t p)):p
+update v t = insertWith max t v  
 
 data Action = Cash Time | Rent Time Time Money
     deriving (Eq, Show, Ord)
@@ -34,4 +33,14 @@ perform :: (Money, Plan) -> Action -> (Money, Plan)
 perform (profit,plan) (Rent t d p) = (profit, update (profit+p) (t+d) plan)
 perform (profit,plan) (Cash t)     = (max profit (value t plan), plan)
 
+profit :: [[Int]] -> Money
+profit = fst . foldl perform (0,empty) . actions
 
+solve :: [[Int]] -> [Money]
+solve = solutions . tail 
+    where 
+    solutions [] = []
+    solutions ([n]:orders) = profit (take n orders):solutions (drop n orders) 
+
+process :: ByteString -> ByteString
+process = BS.unlines . map (BS.pack . show) . solve . map (map (read . BS.unpack) . BS.words) . BS.lines 
