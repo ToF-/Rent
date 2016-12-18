@@ -1,12 +1,15 @@
 \ Rent.fs
 \ Solving the RENT problem in gforth
 
+REQUIRE Sort.fs
+
 10000 CONSTANT MAXORDERS 
 VARIABLE #ORDERS
 CREATE ORDERS MAXORDERS CELLS ALLOT
+CREATE PROFIT MAXORDERS 1+ CELLS ALLOT
 
 : INIT-ORDERS ( --  initialize the list of orders )
-    ORDERS MAXORDERS ERASE
+    ORDERS MAXORDERS CELLS ERASE
     0 #ORDERS ! ;
 
 : ENCODE-ORDER ( t d p -- o   encode time duration and price into an order record )
@@ -32,3 +35,15 @@ CREATE ORDERS MAXORDERS CELLS ALLOT
 : NEAREST ( t -- n  finds the position of the nearest order to t)
     0 0 ENCODE-ORDER #ORDERS @ 0 BSEARCH ;
 
+: CALC-PROFIT ( -- n compute the best profit value for the orders )
+    ORDERS #ORDERS @ SORT 
+    PROFIT MAXORDERS 1+ CELLS ERASE 
+    #ORDERS @ DUP 0 DO 
+        DUP 1- I - DUP
+        CELLS ORDERS + @ DECODE-ORDER
+        -ROT + NEAREST CELLS PROFIT + @ + OVER 1+ CELLS PROFIT + @ MAX
+        SWAP CELLS PROFIT + !
+    LOOP DROP 
+    PROFIT @ ;
+        
+         

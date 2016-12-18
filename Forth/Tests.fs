@@ -47,7 +47,14 @@ T{
         14 NEAREST 4 ?S
         1  NEAREST 1 ?S
 
-        
+    ." calc the best profit" CR
+        INIT-ORDERS
+        0 5 100 ADD-ORDER
+        3 7 140 ADD-ORDER  
+        5 9 80 ADD-ORDER  
+        6 9 70 ADD-ORDER
+        CALC-PROFIT 180 ?S
+
 
 }T
 BYE
