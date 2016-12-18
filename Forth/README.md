@@ -97,15 +97,15 @@ Sorting efficiently can be complicated matter, especially in Forth.
 Here is a test for a `SORT` word that is accessible on [rosettacode](http://rosettacode.org/wiki/Sorting_algorithms/Quicksort#Forth)
 
     ." sorting records with qsort" CR
-        CREATE LIST 
+        CREATE MYLIST 
         4807 , 42 , 512 , 1000 , 1 , 4096 ,
-        LIST 6 SORT
-        LIST 0 CELLS + @ 1 ?S
-        LIST 1 CELLS + @ 42 ?S
-        LIST 2 CELLS + @ 512 ?S
-        LIST 3 CELLS + @ 1000 ?S
-        LIST 4 CELLS + @ 4096 ?S
-        LIST 5 CELLS + @ 4807 ?S
+        MYLIST 6 SORT
+        MYLIST 0 CELLS + @ 1 ?S
+        MYLIST 1 CELLS + @ 42 ?S
+        MYLIST 2 CELLS + @ 512 ?S
+        MYLIST 3 CELLS + @ 1000 ?S
+        MYLIST 4 CELLS + @ 4096 ?S
+        MYLIST 5 CELLS + @ 4807 ?S
 
 And here is a copy from *rosettacode*:
 
@@ -135,3 +135,49 @@ And here is a copy from *rosettacode*:
     : SORT ( array len -- )
       DUP 2 < IF 2DROP EXIT THEN
       1- CELLS OVER + QSORT ;
+
+##Adding orders to the list
+
+When we initialize the list, the numbers of orders is set to zero:
+
+    ." after initialize, max orders is set to zero" CR
+        INIT-ORDERS
+        #ORDERS @ 0 ?S
+
+Let's make some declarations:
+
+    10000 CONSTANT MAXORDERS 
+    VARIABLE #ORDERS
+    CREATE ORDERS MAXORDERS CELLS ALLOT
+
+    : INIT-ORDERS ( --  initialize the list of orders )
+        ORDERS MAXORDERS ERASE
+        0 #ORDERS ! ;
+
+When we add an order, an encoded record of order is stored in the list:
+
+    ." after adding an order, order is incoded in the list" CR
+        INIT-ORDERS
+        0 5 100 ADD-ORDER 
+        3 7 140 ADD-ORDER 
+        #ORDERS @ 2 ?S
+        ORDERS        @ DECODE-ORDER 100 ?S 5 ?S 0 ?S
+        ORDERS CELL + @ DECODE-ORDER 140 ?S 7 ?S 3 ?S
+
+Let's try the words we have already:
+
+    require Rent.fs ⏎
+    require Sort.fs ⏎
+    init-orders  ⏎
+    5 9 80 add-order   ⏎
+    3 7 140 add-order  ⏎
+    0 5 100 add-order  ⏎
+    6 9 70 add-order   ⏎
+    orders 4 sort   ⏎
+    : .order ( t d p -- print an order ) rot . swap . . ; ⏎
+    : .orders #orders @ 0 do orders i cells + @ decode-order .order cr loop ; ⏎
+    cr .orders ⏎
+    0 5 100
+    3 7 140
+    5 9 80
+    6 9 70
