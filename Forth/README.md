@@ -166,18 +166,68 @@ When we add an order, an encoded record of order is stored in the list:
 
 Let's try the words we have already:
 
-    require Rent.fs ⏎
-    require Sort.fs ⏎
-    init-orders  ⏎
-    5 9 80 add-order   ⏎
-    3 7 140 add-order  ⏎
-    0 5 100 add-order  ⏎
-    6 9 70 add-order   ⏎
-    orders 4 sort   ⏎
-    : .order ( t d p -- print an order ) rot . swap . . ; ⏎
-    : .orders #orders @ 0 do orders i cells + @ decode-order .order cr loop ; ⏎
-    cr .orders ⏎
-    0 5 100
-    3 7 140
-    5 9 80
-    6 9 70
+    \ Spike.fs
+
+    REQUIRE RENT.FS 
+    REQUIRE SORT.FS 
+    INIT-ORDERS  
+    5 9 81 ADD-ORDER   
+    3 7 142 ADD-ORDER  
+    0 5 103 ADD-ORDER  
+    6 9 74 ADD-ORDER   
+    ORDERS 4 SORT   
+    : .ORDER ( t d p -- print an order ) ROT . SWAP . . ; 
+    : .ORDERS #ORDERS @ 0 DO ORDERS I CELLS + @ DECODE-ORDER .ORDER CR LOOP ; 
+    CR .ORDERS 
+    BYE
+
+running our spike:
+
+    gforth Spike.fs ⏎
+    0 5 103
+    3 7 142
+    5 9 81
+    6 9 74
+
+##Searching for the nearest item to a value in a list
+
+We now need to implement an efficient search for the nearest order to a certain time value. For example, given this list of orders:
+
+    - 0 5 100
+    - 3 7 140
+    - 5 9 80
+    - 6 9 70
+
+and looking for the nearest order that is compatible with the first order (0 5 100) in the list, we want to search the list for the time value 5. As the orders are encoded in the list, we don't need to decode them in order to do such a search: looking for the order (5 0 0) will work, because 30000007000140 < 50000000000000 < 50000009000080, and thus the high limit on our serch will always be the item we are looking for when the interval searched is reduce to 1.
+So that we are able to look for a time value that is greater than all the time in the list, we have to start the high limit on the search at MAXORDERS rather than MAXORDERS - 1.
+
+The algorithm for the binary search is explained below:
+
+    seaching for the position of the nearest value to T 
+    start with L= 0, H = MAXORDERS
+    while H - L > 1
+        M = L + (H - L)/2
+        if T > list(M)
+            L = M   
+        else
+            H = M 
+    H is the position
+
+For example serching for the nearest value to 30 in the list 0 11 22 33 44 :  
+    
+    
+    T = 30 L = 0  H = 5
+    H - L > 1
+    M = 0 + (5 - 0) / 2 = 2
+    T > 22
+        L = 2
+    H - L > 1
+    M = 2 + (5 - 2) / 2 = 3
+    T <= 33
+        H = 3
+    H - L = 1
+    postion = 3
+
+Let's write some tests:
+    
+    

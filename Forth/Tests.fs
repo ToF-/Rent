@@ -34,6 +34,12 @@ T{
         #ORDERS @ 2 ?S
         ORDERS        @ DECODE-ORDER 100 ?S 5 ?S 0 ?S
         ORDERS CELL + @ DECODE-ORDER 140 ?S 7 ?S 3 ?S
+
+    ." nearest finds the position of the nearest order in the order list" CR
+        INIT-ORDERS
+        0 5 100 ADD-ORDER  3 7 140 ADD-ORDER  5 9 80 ADD-ORDER  6 9 70 ADD-ORDER
+        ORDERS #ORDERS @ SORT 
+        5 0 0 ENCODE-ORDER NEAREST 2 ?S
         
 
 }T
