@@ -20,3 +20,15 @@ CREATE ORDERS MAXORDERS CELLS ALLOT
     ORDERS #ORDERS @ CELLS + ! 
     1 #ORDERS +! ;  
 
+: BSEARCH ( x h l -- n finds the position of first v >= x )
+    ROT >R
+    BEGIN 2DUP - 1 > WHILE
+        2DUP + 2 /             
+        DUP CELLS ORDERS +     
+        @ R@ < IF SWAP DROP ELSE SWAP ROT DROP THEN
+    REPEAT DROP R> DROP ;
+        
+        
+: NEAREST ( t -- n  finds the position of the nearest order to t)
+    0 0 ENCODE-ORDER #ORDERS @ 0 BSEARCH ;
+

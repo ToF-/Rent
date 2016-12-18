@@ -231,3 +231,16 @@ For example serching for the nearest value to 30 in the list 0 11 22 33 44 :
 Let's write some tests:
     
     
+    ." nearest finds the position of the nearest order with a given time in the order list" CR
+        INIT-ORDERS
+        0 5 100 ADD-ORDER
+        3 7 140 ADD-ORDER  
+        5 9 80 ADD-ORDER  
+        6 9 70 ADD-ORDER
+        ORDERS #ORDERS @ SORT 
+        5  NEAREST 2 ?S
+        10 NEAREST 4 ?S
+        14 NEAREST 4 ?S
+        1  NEAREST 1 ?S
+
+Our definition consist in encoding an order with the given time, and searching for it in the array of orders, using a binary search strategy:
