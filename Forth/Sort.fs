@@ -1,27 +1,26 @@
 \ sort.fs source: http://rosettacode.org/wiki/Sorting_algorithms/Quicksort#Forth
 
-: -cell -8 ;
+: -CELL -8 ;
 
-: cell- cell - ;
+: CELL- CELL - ;
 
-: mid ( l r -- mid ) over - 2/ -cell and + ;
+: MID ( l r -- mid ) OVER - 2/ -CELL AND + ;
 
-: exch ( addr1 addr2 -- ) dup @ >r over @ swap ! r> swap ! ;
+: EXCH ( addr1 addr2 -- ) DUP @ >R OVER @ SWAP ! R> SWAP ! ;
 
-: partition ( l r -- l r r2 l2 )
-  2dup mid @ >r ( r: pivot )
-  2dup begin
-    swap begin dup @  r@ < while cell+ repeat
-    swap begin r@ over @ < while cell- repeat
-    2dup <= if 2dup exch >r cell+ r> cell- then
-  2dup > until  r> drop ;
+: PARTITION ( l r -- l r r2 l2 )
+  2DUP MID @ >R ( r: pivot )
+  2DUP BEGIN
+    SWAP BEGIN DUP @  R@ < WHILE CELL+ REPEAT
+    SWAP BEGIN R@ OVER @ < WHILE CELL- REPEAT
+    2DUP <= IF 2DUP EXCH >R CELL+ R> CELL- THEN
+  2DUP > UNTIL  R> DROP ;
 
-: qsort ( l r -- )
-  partition  swap rot
-  \ 2over 2over - + < if 2swap then
-  2dup < if recurse else 2drop then
-  2dup < if recurse else 2drop then ;
+: QSORT ( l r -- )
+  PARTITION  SWAP ROT
+  2DUP < IF RECURSE ELSE 2DROP THEN
+  2DUP < IF RECURSE ELSE 2DROP THEN ;
 
-: sort ( array len -- )
-  dup 2 < if 2drop exit then
-  1- cells over + qsort ;
+: SORT ( array len -- )
+  DUP 2 < IF 2DROP EXIT THEN
+  1- CELLS OVER + QSORT ;

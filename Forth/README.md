@@ -94,3 +94,44 @@ This encoding allows us to sort the records by time value:
 ##Sorting an array of cells
 
 Sorting efficiently can be complicated matter, especially in Forth.
+Here is a test for a `SORT` word that is accessible on [rosettacode](http://rosettacode.org/wiki/Sorting_algorithms/Quicksort#Forth)
+
+    ." sorting records with qsort" CR
+        CREATE LIST 
+        4807 , 42 , 512 , 1000 , 1 , 4096 ,
+        LIST 6 SORT
+        LIST 0 CELLS + @ 1 ?S
+        LIST 1 CELLS + @ 42 ?S
+        LIST 2 CELLS + @ 512 ?S
+        LIST 3 CELLS + @ 1000 ?S
+        LIST 4 CELLS + @ 4096 ?S
+        LIST 5 CELLS + @ 4807 ?S
+
+And here is a copy from *rosettacode*:
+
+    \ sort.fs source: http://rosettacode.org/wiki/Sorting_algorithms/Quicksort#Forth
+
+    : -CELL -8 ;
+
+    : CELL- CELL - ;
+
+    : MID ( l r -- mid ) OVER - 2/ -CELL AND + ;
+
+    : EXCH ( addr1 addr2 -- ) DUP @ >R OVER @ SWAP ! R> SWAP ! ;
+
+    : PARTITION ( l r -- l r r2 l2 )
+      2DUP MID @ >R ( r: pivot )
+      2DUP BEGIN
+        SWAP BEGIN DUP @  R@ < WHILE CELL+ REPEAT
+        SWAP BEGIN R@ OVER @ < WHILE CELL- REPEAT
+        2DUP <= IF 2DUP EXCH >R CELL+ R> CELL- THEN
+      2DUP > UNTIL  R> DROP ;
+
+    : QSORT ( l r -- )
+      PARTITION  SWAP ROT
+      2DUP < IF RECURSE ELSE 2DROP THEN
+      2DUP < IF RECURSE ELSE 2DROP THEN ;
+
+    : SORT ( array len -- )
+      DUP 2 < IF 2DROP EXIT THEN
+      1- CELLS OVER + QSORT ;
