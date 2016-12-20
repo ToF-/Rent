@@ -6,6 +6,8 @@ REQUIRE QSort.fs
 T{
     CREATE A
     4807 ,   42 ,  512 , 4096 , 1000 , 256 , 
+    CREATE B
+    807 ,   424 ,  12 , 54096 , 0 , 2560 , 
 
     ." LT-PIVOT seek address of 1st item >= pivot" CR
         4807 A       LT-PIVOT NIP   A ?S  
@@ -23,8 +25,22 @@ T{
         A 5 CELLS + A PARTITION   A 4 CELLS + ?S
         A 5 CELLS + @ 4807 ?S  A @ 256 ?S
 
+    ." QSORT sorts array between high and low address" CR
+        A 5 CELLS + A QSORT
+        A     DUP @   42 ?S
+        CELL+ DUP @  256 ?S
+        CELL+ DUP @  512 ?S 
+        CELL+ DUP @ 1000 ?S 
+        CELL+ DUP @ 4096 ?S 
+        CELL+     @ 4807 ?S
+
     ." SORT quick sorts an array" CR
-        A 5 SORT
-        A DUP @ 42 ?S CELL+ DUP @ 256 ?S CELL+ DUP @ 512 ?S CELL+ DUP @ 1000 ?S CELL+ DUP @ 4096 ?S CELL+ @ 4807 ?S
+        B 5 SORT
+        B     DUP @    0 ?S
+        CELL+ DUP @   12 ?S
+        CELL+ DUP @  424 ?S 
+        CELL+ DUP @  807 ?S 
+        CELL+ DUP @ 2560 ?S 
+        CELL+     @ 54096 ?S
 }T
 BYE

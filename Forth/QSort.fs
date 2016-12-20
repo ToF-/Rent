@@ -11,20 +11,30 @@
 : EXCHANGE ( a b -- swap address a and b content )
     2DUP @ SWAP @ ROT ! SWAP ! ;
 
+: LT-PIVOT-GT ( p h l -- p h l  finds limit positions around pivot )
+     ROT SWAP LT-PIVOT   \ h p l
+    -ROT SWAP GT-PIVOT   \ l p h
+     ROT ;               \ p h l
+
+: LT++HT--  ( h l -- h-1 l+1  increase and decrease positions around pivot )
+    CELL+ SWAP CELL- SWAP ;
+ 
 : PARTITION ( h l -- h  partitions the array, leaving new pivot )
-    DUP @   \ h l p
+    DUP @ -ROT  \ p h l
     BEGIN
-        SWAP LT-PIVOT SWAP \ h l p  
-        ROT GT-PIVOT ROT   \ p h l
+        LT-PIVOT-GT        \ p h l
         2DUP > IF          \ p h l
-            2DUP EXCHANGE  \ p h l
-            CELL+ SWAP CELL- SWAP 
-            ROT TRUE
-        ELSE ROT 2DROP FALSE THEN
-    WHILE 
-    REPEAT ;
+            2DUP EXCHANGE LT++HT--   
+        ELSE DROP NIP EXIT THEN
+    AGAIN ;
 
 : QSORT ( h l -- sort the array )
+    2DUP > IF 
+        2DUP PARTITION DUP \ h l p p
+        ROT   RECURSE     
+        CELL+ RECURSE
+    ELSE 2DROP THEN ;
+
     
 : SORT ( a l -- sort the array a of size l )
     CELLS OVER + SWAP QSORT
