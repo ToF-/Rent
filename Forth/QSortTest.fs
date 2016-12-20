@@ -10,12 +10,12 @@ T{
     807 ,   424 ,  12 , 54096 , 0 , 2560 , 
 
     ." LT-PIVOT seek address of 1st item >= pivot" CR
-        4807 A       LT-PIVOT NIP   A ?S  
-        512  A CELL+ LT-PIVOT NIP   A 2 CELLS + ?S
+        4807 A CELL - LT-PIVOT NIP   A ?S  
+        512  A       LT-PIVOT NIP   A 2 CELLS + ?S
 
     ." GT-PIVOT seek address of 1st item <= pivot" CR
-        4807 A 5 CELLS + GT-PIVOT NIP   A 5 CELLS + ?S  
-        42   A 5 CELLS + GT-PIVOT NIP   A 1 CELLS + ?S  
+        4807 A 6 CELLS + GT-PIVOT NIP   A 5 CELLS + ?S  
+        42   A 6 CELLS + GT-PIVOT NIP   A 1 CELLS + ?S  
 
     ." EXCHANGE swaps the content of two addresses" CR
         A A 2 CELLS + EXCHANGE A @ 512 ?S A 2 CELLS + @ 4807 ?S  
