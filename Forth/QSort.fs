@@ -5,24 +5,25 @@
 : CELL- ( addr -- addr )
     CELL - ;
 
-: LT-PIVOT ( p lo -- lo  seek for 1st value >= p in addr,addr+1,addr+2.. )
-    BEGIN CELL+ 2DUP @ > WHILE REPEAT NIP ;
+: LT-PIVOT ( p lo -- p lo  seek for 1st value >= p in addr,addr+1,addr+2.. )
+    BEGIN CELL+ 2DUP @ > WHILE REPEAT ;
      
-: GT-PIVOT ( p hi -- hi   seek for 1st value <= p in addr,addr-1,addr-2.. )
-    BEGIN CELL- 2DUP @ < WHILE REPEAT NIP ;
+: GT-PIVOT ( p hi -- p hi   seek for 1st value <= p in addr,addr-1,addr-2.. )
+    BEGIN CELL- 2DUP @ < WHILE REPEAT ;
 
 : EXCHANGE ( a b -- exchange the values in a and b )
     2DUP @ >R @ SWAP ! R> SWAP ! ;
 
 : PARTITION ( j i -- adp separates items lower and greater than lo+0, leaving new pivot )
-    DUP @ >R              \ j i     [p] 
-    SWAP CELL+ SWAP CELL-
+    DUP @                     \ j i p
+    ROT CELL+ ROT CELL-       \ p j=j+1 i=i-1 
     BEGIN
-        R@ SWAP               \ j p i
-        LT-PIVOT              \ j i
-        R@ ROT                \ i p j
-        GT-PIVOT              \ i j
-        2DUP < IF 2DUP EXCHANGE 1 ELSE 0 THEN
-    WHILE
-    SWAP REPEAT               \ j i
-    R> DROP  NIP ;            \ i j
+        ROT SWAP  LT-PIVOT    \ j p i
+        -ROT SWAP GT-PIVOT    \ i p j 
+        ROT 2DUP              \ p j i j i
+        >= IF                 \ p j i
+            2DUP EXCHANGE TRUE \ p j i t
+         ELSE FALSE THEN       \ p j i f
+    WHILE                      \ p j i
+    REPEAT
+    ROT 2DROP ;                 \ j
