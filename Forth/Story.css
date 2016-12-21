@@ -1,0 +1,23 @@
+
+h1 , h2, h3 {
+    color:teal;
+}
+
+body {
+    font-family: Arial, Helvetica, Verdana, Sans-serif;
+    font-size: 14px;
+    background-color: #ffffff;
+}
+
+pre {
+    margin: 10px 10px 10px 10px;
+}
+code {
+    font-color:red;
+}
+
+pre.test {
+    font-color:red;
+}    
+}
+

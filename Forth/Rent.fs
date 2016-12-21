@@ -12,11 +12,13 @@ CREATE PROFIT MAXORDERS 1+ CELLS ALLOT
     ORDERS MAXORDERS CELLS ERASE
     0 #ORDERS ! ;
 
-: ENCODE-ORDER ( t d p -- o   encode time duration and price into an order record )
-    ROT 1000000 * ROT + 100000 * + ;
+: ENCODE-ORDER ( t,d,p -- n   encode time, duration, price on one cell )
+    ROT  1000000 * 
+    ROT + 100000 * + ;
 
-: DECODE-ORDER ( o -- t d p   decode time duration and price from an order record )
-    100000 /MOD 1000000 /MOD SWAP ROT ;
+: DECODE-ORDER ( n -- t,d,p   decode time, duration, price from a cell )
+     100000 /MOD 
+    1000000 /MOD SWAP ROT ;
     
 : ADD-ORDER ( t d p -- encode an order an add it to the list )
     ENCODE-ORDER
