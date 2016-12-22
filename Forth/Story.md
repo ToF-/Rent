@@ -141,5 +141,31 @@ And we can launch __gforth__ with this script:
 ###✍
 > *`gforth <file>` launch gforth and execute everything that is included in the given file*<br>
 > *`? ( addr -- )` print the value stored ut addr*<br>
+
 ## Storing orders
 
+As we defined the entry that will keep the orders, we surmised that each order would fit in an 8-byte cell. Two questions arise: 1) are we sure? 2) how to encode reliably three integers in one cell?
+
+### The size of an order
+
+How many different values of order can we have? Let's recall the problem specification: 
+> Each order is described by 3 integer values: The start time of the order st (0 ≤ st < 1000000), the duration d of the order (0 < d < 1000000), and the price p (0 < p < 100000) the customer is ready to pay for this order.
+
+This means that we need to be able to store 10⁶ x 10⁶ x 10⁵ = 10¹⁷ distinct values. An 8 byte signed integer can represent 2⁶³ positive values, and 10¹7 < 2⁶³ , so the answer to question 1) is « yes ».
+
+### Encoding an order on a cell
+
+A simple and reliable way to encode 3 distinct values *t*,*d*,*p* in one cell is to multiply these elements by distincts powers of 10 and then add them: *V* = *t* x 10¹¹ + *d* x 10⁵ + *p*. This can also be written this way: *V* = (*t* x 10⁶ + *d*) x 10⁵ + *p*. w
+Let's write a new word in our script that will do that. It will be our first *colon definition*: 
+
+    : ORDER>CELL ( t,d,p -- n  encode an order in a single cell )
+        ROT  1000000 *  ( d,p,t__ )
+        ROT + 100000 *  ( p,td_ )
+        + ;             ( tdp )
+
+And we can load the script again to test it:
+
+>     gforth Spike.fs ⏎
+>     7 140 ORDER>CELL . 300000700140 ⏎ ok 
+>     900000 800000 50000 ORDER>CELL . 90000080000050000 ⏎ ok 
+>     999999 888888 55555 ORDER>CELL . 99999988888855555 ⏎ ok
