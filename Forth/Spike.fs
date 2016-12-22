@@ -1,14 +1,20 @@
-\ Spike.fs
+\ Rent.fs 
 
-REQUIRE RENT.FS 
-REQUIRE SORT.FS 
-INIT-ORDERS  
-5 9 81 ADD-ORDER   
-3 7 142 ADD-ORDER  
-0 5 103 ADD-ORDER  
-6 9 74 ADD-ORDER   
-ORDERS 4 SORT   
-: .ORDER ( t d p -- print an order ) ROT . SWAP . . ; 
-: .ORDERS #ORDERS @ 0 DO ORDERS I CELLS + @ DECODE-ORDER .ORDER CR LOOP ; 
-CR .ORDERS 
-BYE
+3 CELLS CONSTANT ORDER-SIZE
+10000   CONSTANT MAX-ORDERS
+
+CREATE ORDERS
+ORDER-SIZE MAX-ORDERS * ALLOT
+
+VARIABLE #ORDERS
+
+: NEXT-ORDER ( -- addr  next available position in the array )
+    ORDERS #ORDERS @ ORDER-SIZE * + ;
+
+: !++ ( n,addr -- addr+1c  store n at addr then increment adr )
+    DUP CELL+ -ROT ! ;
+
+: ADD-ORDER ( t,d,p -- store order in array and increment counter )
+    SWAP ROT  
+    NEXT-ORDER !++ !++ !++ DROP
+    1 #ORDERS +! ;
