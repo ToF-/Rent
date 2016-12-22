@@ -3,13 +3,13 @@
 
 Let's recap the algorithm at the center of the program that we want to implement:
 > given:<br>
->    O, an array of length N containing orders, each order being defined by its start time, duration, and price;<br>
->    B, an array of length N+1 containing the best profit at the start time of each order, except for B[N] = 0;<br>
+>    O, an array of length N containing orders, each order being defined by its *start time*, *duration*, and *price*;<br>
+>    B, an array of length N+1 containing the best profit at the *start time* of each order, except for B[N] = 0;<br>
 > 
-> sort O by order start time;<br>
+> sort O by order *start time*;<br>
 > for i starting at N-1 until 0:<br>
->   compute B[i] : max(price(O[i]) + B[k], B[i+1])<br>
->   where k = mimimum[ j | start_time(O[j]) ≥ start_time(O[i]) + duration(O[i])
+>   compute B[i] : max(*price*(O[i]) + B[k], B[i+1])<br>
+>   where k = mimimum[ j | *start time*(O[j]) ≥ *start time*(O[i]) + *duration*(O[i])
 >
 > B[0] = best profit for the array of orders.
 
@@ -23,7 +23,7 @@ We have many small and less small problems to solve. Let's launch `gforth`:
 
 ## Using the Stack memory
 
-Let's suppose we have an order given on the Stack: it's easy, we just enter a start time, a duration, and a price.
+Let's suppose we have an order given on the Stack: it's easy, we just enter a *start time*, a *duration*, and a *price*.
 
     3 7 140 ⏎ ok
 
@@ -31,7 +31,7 @@ Then we can easily compute and print the end time of the order, i.e. the time at
 
     ROT ROT + . ⏎ 10 ok
 
-And now the only thing remaining on the Stack is the price:
+And now the only thing remaining on the Stack is the *price*:
 
     . ⏎ 140 ok
 
@@ -131,9 +131,53 @@ It's time to keep a source code for the program we are creating. Let's put what 
 
 And we can launch __gforth__ with this script:
 
->     11:30:35 ~/dev/Rent/Forth:gforth Spike.fs ⏎
+>     >forth Spike.fs ⏎
 >     Gforth 0.7.2, Copyright (C) 1995-2008 Free Software Foundation, Inc.
 >     Gforth comes with ABSOLUTELY NO WARRANTY; for details type `license'
 >     Type `bye' to exit
 >     PROFITS ORDERS - . 240040  ok
 >     #ORDERS ? 0  ok
+
+## Storing orders
+
+Given a *start time*, a *duration* and a *price* values present of the Stack, how do we proceed to store these values in the memory starting at `ORDERS` ?
+
+    3 7 140      \ for example ⏎ ok
+    ROT ORDERS ! \ store start time in first cell ⏎ ok
+    SWAP ORDERS CELL+ !   \ store duration one cell further ⏎ ok
+    ORDERS CELL+ CELL+ !  \ store price two cells further ⏎ ok
+
+The word `CELL+` adds 8 -- the size of cell, a.k.a `CELL` -- to the address of the Stack.<br>
+Now if we examine the content of the memory address given by `ORDERS` we can see that our three values have been stored here:
+
+    ORDERS 3 CELLS DUMP ⏎
+    1092171F8: 03 00 00 00  00 00 00 00 - 07 00 00 00  00 00 00 00  ................
+    109217208: 8C 00 00 00  00 00 00 00 -                           ........
+     ok
+    
+Since we used the word `ORDERS` to implement it, this method works only for the first order in the entry. How can we generalize it ? We can try to create a simple world that would:
+
+- grab a value on the Stack
+- store the value at that address
+- leave the next address (i.e address + one cell) on the Stack for the next value to be stored 
+
+Let's create a new *colon definition* that we will add at the end of our script :
+    
+    : !++ ( n,addr -- addr+cell -- store value n at addr then leaves address + 1 cell )
+        SWAP    ( addr,n )
+        OVER    ( addr,n,addr )
+        !       ( addr )
+        CELL+ ; ( addr+cell )
+
+Let's try our new word:
+
+>     >forth Spike.fs ⏎
+>     ORDERS . ⏎ 4374413816 ok
+>     4807 ORDERS !++ .S ⏎ <1> 4374413824 ok
+>     DROP ⏎ ok
+>     ORDERS ? ⏎ 4807 ok 
+
+We can now create a more general word:
+
+
+
