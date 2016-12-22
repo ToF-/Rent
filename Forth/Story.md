@@ -89,26 +89,26 @@ Obviously, we are not going to create 10000 variables to store the orders: we ne
 
     CREATE ORDERS ⏎ ok
 
-Then we must *reserve* the right amount of memory bytes to store our 10000 orders. How much should that be? Each order will occupy 3 integer values -- called *cells* -- and we will have 10000 orders:
+Then we must *reserve* the right amount of memory bytes to store our 10000 orders. How much should that be? We are not sure yet. Let's suppose that an order will occupy no more than 8 bytes of memory. In fact 8 bytes is what it take to store an integer value -- called a *cell* -- in gforth, and we will have 10000 orders, thus:
 
-    3 CELLS MAX-ORDERS * ALLOT  ⏎ ok
+    MAX-ORDERS CELLS ALLOT  ⏎ ok
 
-The word `CELLS` multiplies the value on the Stack by the standard size of a cell in bytes, which is 8 on gforth. 
+The word `CELLS` multiplies the value on the Stack by the standard size of a cell in bytes.
 
 Now `ORDERS` is a new word in the Dictionary, and its effect is to put the address of our memory zone, which is also the address of the first order in the array, on the Stack:
 
-    ORDERS . ⏎  4458092120 ok
+    ORDERS . ⏎  4451815928 ok
 
-Let's create another entry: we need another array of 10001 integers, representing the best profit for each order (plus an initial zero value). Let's call this new array `PROFITS`:
+Let's create another entry: we need another array of 10001 integers, representing the best profit for each order (plus an initial zero value). Let's call this new array `PROFIT`:
 
-    CREATE PROFITS MAX-ORDERS 1+ ALLOT ⏎ ok
-    PROFITS . ⏎  4458332160 ok
+    CREATE PROFIT MAX-ORDERS 1+ CELLS ALLOT ⏎ ok
+    PROFIT . ⏎  4451895968 ok
 
-Now if subtract the `PROFITS` address from the `ORDERS` address:
+Now if subtract the `PROFIT` address from the `ORDERS` address:
 
-    PROFITS ORDERS - . ⏎ 240040
+    PROFIT ORDERS - . ⏎ 80040
 
-We find the difference to be slighty above 240000 bytes, which the the size that we alloted for the `ORDERS` entry.
+We find the difference to be slighty above 80000 bytes, which the the size that we alloted for the `ORDERS` entry.
 
 ###✍
 > *`CREATE <name> ( -- )` create a new entry `name` in the Dictionary*<br>
@@ -126,8 +126,8 @@ It's time to keep a source code for the program we are creating. Let's put what 
 
     10000 CONSTANT MAX-ORDERS
     VARIABLE #ORDERS
-    CREATE ORDERS 3 CELLS MAX-ORDERS * ALLOT
-    CREATE PROFITS MAX-ORDERS 1+ ALLOT
+    CREATE ORDERS  MAX-ORDERS CELLS ALLOT
+    CREATE PROFIT  MAX-ORDERS 1+ CELLS ALLOT
 
 And we can launch __gforth__ with this script:
 
@@ -135,49 +135,11 @@ And we can launch __gforth__ with this script:
 >     Gforth 0.7.2, Copyright (C) 1995-2008 Free Software Foundation, Inc.
 >     Gforth comes with ABSOLUTELY NO WARRANTY; for details type `license'
 >     Type `bye' to exit
->     PROFITS ORDERS - . 240040  ok
+>     PROFITS ORDERS - . 80040  ok
 >     #ORDERS ? 0  ok
 
+###✍
+> *`gforth <file>` launch gforth and execute everything that is included in the given file*<br>
+> *`? ( addr -- )` print the value stored ut addr*<br>
 ## Storing orders
-
-Given a *start time*, a *duration* and a *price* values present of the Stack, how do we proceed to store these values in the memory starting at `ORDERS` ?
-
-    3 7 140      \ for example ⏎ ok
-    ROT ORDERS ! \ store start time in first cell ⏎ ok
-    SWAP ORDERS CELL+ !   \ store duration one cell further ⏎ ok
-    ORDERS CELL+ CELL+ !  \ store price two cells further ⏎ ok
-
-The word `CELL+` adds 8 -- the size of cell, a.k.a `CELL` -- to the address of the Stack.<br>
-Now if we examine the content of the memory address given by `ORDERS` we can see that our three values have been stored here:
-
-    ORDERS 3 CELLS DUMP ⏎
-    1092171F8: 03 00 00 00  00 00 00 00 - 07 00 00 00  00 00 00 00  ................
-    109217208: 8C 00 00 00  00 00 00 00 -                           ........
-     ok
-    
-Since we used the word `ORDERS` to implement it, this method works only for the first order in the entry. How can we generalize it ? We can try to create a simple world that would:
-
-- grab a value on the Stack
-- store the value at that address
-- leave the next address (i.e address + one cell) on the Stack for the next value to be stored 
-
-Let's create a new *colon definition* that we will add at the end of our script :
-    
-    : !++ ( n,addr -- addr+cell -- store value n at addr then leaves address + 1 cell )
-        SWAP    ( addr,n )
-        OVER    ( addr,n,addr )
-        !       ( addr )
-        CELL+ ; ( addr+cell )
-
-Let's try our new word:
-
->     >forth Spike.fs ⏎
->     ORDERS . ⏎ 4374413816 ok
->     4807 ORDERS !++ .S ⏎ <1> 4374413824 ok
->     DROP ⏎ ok
->     ORDERS ? ⏎ 4807 ok 
-
-We can now create a more general word:
-
-
 
