@@ -1,4 +1,3 @@
-
 <link rel="stylesheet" href="./story.css">
 #RENT in FORTH!
 
@@ -24,7 +23,7 @@ We have many small and less small problems to solve. Let's launch `gforth`:
 
 ## Using the Stack memory
 
-Let's suppose we have an order given on the stack: it's easy, we just enter a start time, a duration, and a price.
+Let's suppose we have an order given on the Stack: it's easy, we just enter a start time, a duration, and a price.
 
     3 7 140 ⏎ ok
 
@@ -32,11 +31,11 @@ Then we can easily compute and print the end time of the order, i.e. the time at
 
     ROT ROT + . ⏎ 10 ok
 
-And now the only thing remaining on the stack is the price:
+And now the only thing remaining on the Stack is the price:
 
     . ⏎ 140 ok
 
-To understand what happened, let's add a `.S` (print the content of the stack) after each word we type:  
+To understand what happened, let's add a `.S` (print the content of the Stack) after each word we type:  
 
     3 7 140 .S ⏎  <3> 3 7 140  ok
     ROT     .S ⏎  <3> 7 140 3  ok
@@ -45,66 +44,96 @@ To understand what happened, let's add a `.S` (print the content of the stack) a
     .    .S ⏎  10 <1> 140  ok
     .   .S ⏎  140 <0>  ok
 
-## Using the Dictionary memory
+###✍
+> *Entering a number puts this number on the Stack*<br>
+> *`+ ( n,n -- n )` pull two values from the Stack, adds them and leaves the result on the Stack*<br> 
+> *`. ( n -- )` pull the value at top of the Stack and print it*<br>
+> *`ROT ( a,b,c -- b,c,a)` moves the 3rd value to the top of the Stack*<br>
+> *`.S` print the content of the Stack (without altering it)*<br>
 
-We certainly cannot store all our orders on the stack: that would represent 30000 values for a maximal case, and the stack can store no more than 2040 values. We will have to use the dictionary memory. First let's define some new words for the constants in our program:
+## Using the Dictionary: Constants and Variables
 
-    3 CELLS CONSTANT ORDER-SIZE ⏎  ok
-    10000   CONSTANT MAX-ORDERS ⏎  ok
+We certainly cannot store all our orders on the Stack: that would represent 30000 values for a maximal case, and on a standard gforth configuration the Stack can store no more than 2040 values. We can use the Dictionary memory: this is the memory that is used for all the new definitions we will create: constants, variables and new words. <br>
+Let's define a new constant:
 
-The word `CELLS` multiplies the value on the stack by the standard size of a cell in bytes, which is 8 on gforth. Now we can calculate how much memory we will need in the dictionary:
+    10000 CONSTANT MAX-ORDERS ⏎  ok
+    MAX-ORDERS . ⏎  10000 ok
 
-    ORDER-SIZE MAX-ORDERS * .  ⏎  240000 ok
-
-We create a new entry in the dictionary, and allocate as much byte as needed by our array of 10000 orders:
-
-    CREATE ORDERS
-    ORDER-SIZE MAX-ORDERS * ALLOT  ⏎  ok
-
-Now `ORDERS` is a new word in our dictionary, and its effect is to put the address of our memory zone on the stack:
-
-    ORDERS . ⏎  4458092120 ok
-
-Finally we need a variable to store the actual number of orders:
+When executed, a constant leaves its value on the Stack.<br>
+Let's also define a variable to store the actual number of orders:
 
     VARIABLE #ORDERS ⏎  ok
     #ORDERS . ⏎  4458332328  ok
 
-Interestingly, if we subtract the last word we created from this one:
+When executed a variable leaves its *address* on the Stack. It's up to us programmers to know what to do with it. We can *fetch* its value: 
 
-    #ORDERS ORDERS - . ⏎  240208 ok
+    #ORDERS @ . ⏎ 0 ok
 
-We find the space between the two words to be slighty above the 240000 bytes that we asked for.
-
-## Adding Orders 
-
-Let's use what we have here! Asking the number of orders is easy:
-
-    #ORDERS @ . ⏎  0 ok
-
-Storing another value in that variable, just for the fun:
+Or we can *store* a new value into it:
 
     42 #ORDERS ! ⏎  ok
     #ORDERS @ .  ⏎  42 ok
     #ORDERS OFF ⏎  ok
+    #ORDERS @ . ⏎ 0 ok
 
-(`OFF` is a synonym of: `0 SWAP !`)<br>
-Let's put an order, say, 3 7 140, at the first location available in our array, without forgetting to adjust the counter:
+###✍
+> *`CONSTANT <name> ( n -- )` create a new entry `name` in the Dictionary for the constant `n`*<br>
+> *`VARIABLE <name>` create a new entry `name` in the Dictionary for a variable*<br>
+> *`@ ( addr -- n )` fetch the address on the Stack and leave the value of this address content*<br> 
+> *`! ( n,addr -- )` store the value at the address given on the Stack*<br>
+> *`OFF ( addr -- )` set the content of the address to zero*<br>
 
-    3   ORDERS ! ⏎  ok
-    7   ORDERS CELL+ ! ⏎  ok
-    140 ORDERS CELL+ CELL+ ! ⏎  ok
-    1   #ORDERS +! ⏎  ok
+## Using the Dictionary: Arrays
 
-(`CELL+` adds 8 to address on the top of the stack, `+!` is a convenient equivalent of `DUP @ ROT + SWAP !`). Now if we examine the content of the memory around the array `ORDERS` we should see our valuesi (8C is 140 in hexadecimal) :
+Obviously, we are not going to create 10000 variables to store the orders: we need a way to store several values starting at a given address. We do that by creating a new entry -- let's call it `ORDERS`, in the Dictionary:
 
-    ORDERS 24 DUMP ⏎
-    109B91658: 03 00 00 00  00 00 00 00 - 07 00 00 00  00 00 00 00  ................
-    109B91668: 8C 00 00 00  00 00 00 00 -                           ........
-     ok
+    CREATE ORDERS ⏎ ok
 
-## New definitions
+Then we must *reserve* the right amount of memory bytes to store our 10000 orders. How much should that be? Each order will occupy 3 integer values -- called *cells* -- and we will have 10000 orders:
 
-Storing an order in memory is quite complicated. We can simplify this with new words of our own. 
+    3 CELLS MAX-ORDERS * ALLOT  ⏎ ok
 
+The word `CELLS` multiplies the value on the Stack by the standard size of a cell in bytes, which is 8 on gforth. 
 
+Now `ORDERS` is a new word in the Dictionary, and its effect is to put the address of our memory zone, which is also the address of the first order in the array, on the Stack:
+
+    ORDERS . ⏎  4458092120 ok
+
+Let's create another entry: we need another array of 10001 integers, representing the best profit for each order (plus an initial zero value). Let's call this new array `PROFITS`:
+
+    CREATE PROFITS MAX-ORDERS 1+ ALLOT ⏎ ok
+    PROFITS . ⏎  4458332160 ok
+
+Now if subtract the `PROFITS` address from the `ORDERS` address:
+
+    PROFITS ORDERS - . ⏎ 240040
+
+We find the difference to be slighty above 240000 bytes, which the the size that we alloted for the `ORDERS` entry.
+
+###✍
+> *`CREATE <name> ( -- )` create a new entry `name` in the Dictionary*<br>
+> *`ALLOT ( n -- )` allot n bytes of memory for the entry most recently created*<br>
+> *`CELLS ( n -- m )` multiply the value on the Stack by the number of byte in a cell*<br>
+> *`1+ ( n -- m )` add 1 to the value on the top of the Stack*<br>
+> *`- ( a,b -- n )` pull two values a and b from the Stack, and leave a-b on the Stack*<br> 
+ 
+
+## Programming with __gforth__ scripts
+
+It's time to keep a source code for the program we are creating. Let's put what we discovered so far in gforth script file:
+
+    \ Spike.fs   --- solving the RENT problem in gforth !! --- 
+
+    10000 CONSTANT MAX-ORDERS
+    VARIABLE #ORDERS
+    CREATE ORDERS 3 CELLS MAX-ORDERS * ALLOT
+    CREATE PROFITS MAX-ORDERS 1+ ALLOT
+
+And we can launch __gforth__ with this script:
+
+>     11:30:35 ~/dev/Rent/Forth:gforth Spike.fs ⏎
+>     Gforth 0.7.2, Copyright (C) 1995-2008 Free Software Foundation, Inc.
+>     Gforth comes with ABSOLUTELY NO WARRANTY; for details type `license'
+>     Type `bye' to exit
+>     PROFITS ORDERS - . 240040  ok
+>     #ORDERS ? 0  ok

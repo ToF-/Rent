@@ -1,20 +1,6 @@
-\ Rent.fs 
+\ Spike.fs   --- solving the RENT problem in gforth !! --- 
 
-3 CELLS CONSTANT ORDER-SIZE
-10000   CONSTANT MAX-ORDERS
-
-CREATE ORDERS
-ORDER-SIZE MAX-ORDERS * ALLOT
-
+10000 CONSTANT MAX-ORDERS
 VARIABLE #ORDERS
-
-: NEXT-ORDER ( -- addr  next available position in the array )
-    ORDERS #ORDERS @ ORDER-SIZE * + ;
-
-: !++ ( n,addr -- addr+1c  store n at addr then increment adr )
-    DUP CELL+ -ROT ! ;
-
-: ADD-ORDER ( t,d,p -- store order in array and increment counter )
-    SWAP ROT  
-    NEXT-ORDER !++ !++ !++ DROP
-    1 #ORDERS +! ;
+CREATE ORDERS 3 CELLS MAX-ORDERS * ALLOT
+CREATE PROFITS MAX-ORDERS 1+ ALLOT
