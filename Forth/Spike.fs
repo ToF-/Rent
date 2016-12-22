@@ -10,3 +10,7 @@ CREATE PROFIT  MAX-ORDERS 1+ CELLS ALLOT
     ROT + 100000 *  ( p,td_ )
     + ;             ( tdp )
 
+: CELL>ORDER ( n -- t,d,p  decode a cell into an order )
+    100000  /MOD    ( p,td )
+    1000000 /MOD    ( p,d,t )
+    SWAP ROT ;      ( t,d,p )
