@@ -155,7 +155,7 @@ This means that we need to be able to store 10⁶ x 10⁶ x 10⁵ = 10¹⁷ dist
 
 ### Encoding an order on a cell
 
-A simple and reliable way to encode 3 distinct values *t*,*d*,*p* in one cell is to multiply these elements by distincts powers of 10 and then add them:*V* = *t* x 10¹¹ + *d* x 10⁵ + *p*.<br> This can also be written this way: *V* = (*t* x 10⁶ + *d*) x 10⁵ + *p*. 
+A simple and reliable way to encode 3 distinct values *t*,*d*,*p* in one cell is to multiply these elements by distincts powers of 10 and then add them:<center>*V* = *t* x 10¹¹ + *d* x 10⁵ + *p*</center><br> This can also be written this way:<center>*V* = (*t* x 10⁶ + *d*) x 10⁵ + *p*</center>
 
 Let's write a new word in our script that will do that. It will be our first *colon definition*: 
 
@@ -176,3 +176,10 @@ And we can load the script again to test it:
 > *`;` end a semicolon definition and validate the word in the Dictionary*<br>
 > *`( ` start a comment and ignore every following word until closing parenthesis*<br>
 > *`)` end a comment*<br>
+
+### Decoding a cell into an order
+
+Decoding a cell value into an order, i.e. into 3 values of *start time*, *duration* and *price*, is done according the following formula: <br><center>*t* = *V* / 10¹¹ ; *d* = V % 10¹¹ / 10⁵ ; *p* = V % 10⁵.</center>
+
+Hence the definition:
+
