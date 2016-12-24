@@ -3,6 +3,8 @@ import Data.Map (Map, empty, insert, lookupGE, findMin)
 import Data.Maybe
 import Data.List (sortBy, reverse)
 import Data.Ord
+import Data.ByteString (ByteString)
+import qualified Data.ByteString.Char8 as BS
 
 type Plan = Map Time Money
 type Time = Int
@@ -26,3 +28,16 @@ profit :: [Order] -> Money
 profit = value 0 . fst . foldl add (initial,0) . sortBy (flip (comparing time))
     where
     time (t,_,_) = t
+
+solve :: [[Int]] -> [Money]
+solve = solveCases . tail
+    where
+    solveCases [] = []
+    solveCases ([n]:os) = solution (take n os) : solveCases (drop n os)
+    solution = profit . map order
+
+    order [t,d,p] = (t,d,p)
+
+process :: ByteString -> ByteString
+process = BS.unlines . map (BS.pack . show) . solve . map (map (read . BS.unpack) . BS.words) . BS.lines
+

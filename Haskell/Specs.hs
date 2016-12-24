@@ -1,5 +1,7 @@
 import Test.Hspec
 import Rent
+import Data.ByteString (ByteString)
+import qualified Data.ByteString.Char8 as BS
 
 main = hspec $ do
     describe "plan" $ do
@@ -18,3 +20,10 @@ main = hspec $ do
         it "given a standard case, should give the best profit" $ do
             profit [(6, 9, 70), (5, 9, 80), (3, 7, 140), (0, 5, 100)]
                  `shouldBe` 180
+    describe "solve" $ do
+        it "should solve several cases, and ignore the first line of input" $ do
+            solve [[2],[1],[0, 5, 100],[2],[0, 5, 120],[3, 7, 140]] `shouldBe` [100, 140]
+    describe "process" $ do
+        it "should process the input string and produce and output string" $ do
+            process (BS.pack "2\n1\n0 5 100\n2\n0 5 12\n3 7 140\n") `shouldBe` (BS.pack "100\n140\n")
+
