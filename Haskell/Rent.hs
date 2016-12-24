@@ -1,46 +1,28 @@
 module Rent where
-import Data.List (sortBy)
-import Data.Ord (comparing)
-import Data.ByteString (ByteString)
-import qualified Data.ByteString.Char8 as BS
-import Data.Map (Map, empty, insertWith, findWithDefault)
+import Data.Map (Map, empty, insert, lookupGE, findMin)
+import Data.Maybe
+import Data.List (sortBy, reverse)
+import Data.Ord
 
 type Plan = Map Time Money
 type Time = Int
 type Money = Int
+type Order = (Time, Time, Money)
 
+maxTime = 10000000
+
+initial :: Plan
+initial = insert maxTime 0 empty
 
 value :: Time -> Plan -> Money
-value = findWithDefault 0
+value time plan = snd $ fromJust (lookupGE time plan)
 
-update :: Money -> Time -> Plan -> Plan
-update v t = insertWith max t v  
-
-data Action = Cash Time | Rent Time Time Money
-    deriving (Eq, Show, Ord)
-
-addActions :: [Int] -> [Action] -> [Action]
-addActions [t,d,p] as = Cash (t+d) : Rent t d p : as
-
-actions :: [[Int]] -> [Action]
-actions = sortBy (comparing timeAndCategory) . foldr addActions []
+add :: (Plan,Money) -> Order -> (Plan,Money)
+add (plan,last) (time, duration ,price) = (insert time best plan, best)
     where
-    timeAndCategory :: Action -> (Int, Int)
-    timeAndCategory (Cash t)     = (t, 0)
-    timeAndCategory (Rent t _ _) = (t, 1) 
-            
-perform :: (Money, Plan) -> Action -> (Money, Plan)
-perform (profit,plan) (Rent t d p) = (profit, update (profit+p) (t+d) plan)
-perform (profit,plan) (Cash t)     = (max profit (value t plan), plan)
+    best = max (price + (value (time + duration) plan)) last
 
-profit :: [[Int]] -> Money
-profit = fst . foldl perform (0,empty) . actions
-
-solve :: [[Int]] -> [Money]
-solve = solutions . tail 
-    where 
-    solutions [] = []
-    solutions ([n]:orders) = profit (take n orders):solutions (drop n orders) 
-
-process :: ByteString -> ByteString
-process = BS.unlines . map (BS.pack . show) . solve . map (map (read . BS.unpack) . BS.words) . BS.lines 
+profit :: [Order] -> Money
+profit = value 0 . fst . foldl add (initial,0) . sortBy (flip (comparing time))
+    where
+    time (t,_,_) = t

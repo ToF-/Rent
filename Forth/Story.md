@@ -200,23 +200,4 @@ Let's test our definition:
 ###✍
 > *`/MOD ( n,m -- n%m, n/m )` divide n by m, leaving modulo and quotient on the Stack*<br>
 > *`SWAP ( a,b -- b,a )` exchange the two values at the top of the Stack*<br>
-> *`;` end a semicolon definition and validate the word in the Dictionary*<br>
-> *`( ` start a comment and ignore every following word until closing parenthesis*<br>
-> *`)` end a comment*<br>
 
-### Decoding a cell into an order
-
-Decoding a cell value into an order, i.e. into 3 values of *start time*, *duration* and *price*, is done according the following formula: <br><center>*t* = *V* / 10¹¹ ; *d* = V % 10¹¹ / 10⁵ ; *p* = V % 10⁵.</center>
-
-Hence the definition:
-
-    : CELL>ORDER ( n -- t,d,p  decode a cell into an order )
-        100000  /MOD    ( p,td )
-        1000000 /MOD    ( p,d,t )
-        SWAP ROT ;      ( t,d,p )
-
-`/MOD` divides the second value on the Stack by the value at the top, and then leaves the modulo and the quotient. 
-
-Let's test our definition:
-
->     gforth Spike.fs ⏎
