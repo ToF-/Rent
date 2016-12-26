@@ -1,4 +1,3 @@
-<link rel="stylesheet" href="./story.css">
 #RENT in FORTH!
 
 Let's recap the algorithm at the center of the program that we want to implement:

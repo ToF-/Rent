@@ -2,8 +2,6 @@ module Rent where
 import Data.Map (Map, empty, insert, lookupGE)
 import Data.List (sortBy, reverse)
 import Data.Ord
-import Data.Vector (Vector, null, drop, head, toList, fromList, tail)
-import qualified Data.Vector as V 
 
 type Plan = Map Time Money
 type Time = Int
@@ -26,21 +24,21 @@ profit = snd . foldl add (empty, 0) . sortBy (flip (comparing start_time))
 
         new = max (price + (value (time + duration) plan)) current
 
-solve :: Vector [Int] -> [Money]
-solve = solveCases . V.tail
+solve :: [[Int]] -> [Money]
+solve = solveCases . tail
     where
 
-    solveCases v | V.null v = []
-    solveCases v            = solution c : solveCases cs
+    solveCases v | null v = []
+    solveCases v          = solution c : solveCases cs
         where
-        (h,rest) = V.splitAt 1 v
-        [n]        = V.head h
-        (c,cs)   = V.splitAt n rest
+        (h,rest) = splitAt 1 v
+        [n]      = head h
+        (c,cs)   = splitAt n rest
 
-    solution = profit . toList . V.map order
+    solution = profit . map order
 
     order [t,d,p] = (t,d,p)
 
 process :: String -> String
-process = unlines . Prelude.map show . solve . fromList . Prelude.map (Prelude.map read . words) . lines
+process = unlines . map show . solve . map (map read . words) . lines
 
