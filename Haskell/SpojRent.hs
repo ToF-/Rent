@@ -1,4 +1,3 @@
-module Rent where
 import Data.Map (Map, empty, insert, lookupGE)
 import Data.List (sortBy, reverse)
 import Data.Ord
@@ -44,3 +43,4 @@ solve = solveCases . V.tail
 process :: String -> String
 process = unlines . Prelude.map show . solve . fromList . Prelude.map (Prelude.map read . words) . lines
 
+main = interact process
