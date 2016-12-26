@@ -200,3 +200,18 @@ Let's test our definition:
 > *`/MOD ( n,m -- n%m, n/m )` divide n by m, leaving modulo and quotient on the Stack*<br>
 > *`SWAP ( a,b -- b,a )` exchange the two values at the top of the Stack*<br>
 
+### Comparing orders by start time
+
+This way of encoding an order into a cell is in fact quite convenient, since we can still compare encoded orders for start time:
+ 
+<center>*V* = (*t* x 10⁶ + *d*) x 10⁵ + *p*, *V'* = (*t'* x 10⁶ + *d'*) x 10⁵ + *p'*,</center>
+
+<center>*t* > *t'* ⇒ *V* > *V'* </center>
+<center>*V* > *V'* ⇒ *t* ≥ *t'* </center>
+
+For example, an order starting at 5 with duration 0 and price 0, is greater than an order starting at 0 with duration 5 and price 100:
+
+>     gforth Spike.fs ⏎
+>     5 0 0   ORDER>CELL  ⏎  ok 
+>     0 5 100 ORDER>CELL  ⏎  ok 
+>     > .  ⏎  -1 ok
