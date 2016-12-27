@@ -14,3 +14,17 @@ CREATE PROFIT  MAX-ORDERS 1+ CELLS ALLOT
     100000  /MOD    ( p,td )
     1000000 /MOD    ( p,d,t )
     SWAP ROT ;      ( t,d,p )
+
+: NEAREST ( t,addr -- addr  nearest order with start time >= t )
+    BEGIN
+        OVER OVER 
+        @ > 
+    WHILE CELL+ 
+    REPEAT NIP ;
+
+    0 5 100 ORDER>CELL ORDERS !
+    3 7 140 ORDER>CELL ORDERS 1 CELLS + !
+    5 9  70 ORDER>CELL ORDERS 2 CELLS + !
+    3 7  80 ORDER>CELL ORDERS 3 CELLS + !
+    2000000 0 0  ORDER>CELL ORDERS 4 CELLS + !
+    5 #ORDERS !

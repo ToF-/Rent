@@ -2,16 +2,29 @@
 
 Let's recap the algorithm at the center of the program that we want to implement:
 > given:<br>
->    O, an array of length N containing orders, each order being defined by its *start time*, *duration*, and *price*;<br>
->    B, an array of length N+1 containing the best profit at the *start time* of each order, except for B[N] = 0;<br>
+>    *O*, an array of length N containing orders, each order being defined by its *start time*, *duration*, and *price*;<br>
+>    0 ≤ *start time* < 1000000 ; 0 < *duration* < 1000000 ; 0 < price < 100000<br> 
+>    *B*, an array of length N+1 containing the best profit at the *start time* of each order, except for *B[N]* = 0;<br>
 > 
-> sort O by order *start time*;<br>
+> sort O by *start time*;<br>
 > for i starting at N-1 until 0:<br>
->   compute B[i] : max(*price*(O[i]) + B[k], B[i+1])<br>
->   where k = mimimum[ j | *start time*(O[j]) ≥ *start time*(O[i]) + *duration*(O[i])
+>   *B[i]* : max(*price(O[i])* + *B[k]*, *B[i+1]*)<br>
+>   where k = mimimum[ j | *start time(O[j])* ≥ *start time(O[i])* + *duration(O[i])*
 >
 > B[0] = best profit for the array of orders.
 
+If preserving data is not important, this algorithm can even be simplified so that only an array of N+1 orders is used:
+> given:<br>
+>    O, an array of length N+1 containing orders, each order being defined by its *start time*, *duration*, and *price*;<br>
+>    for each order O[i], 0 ≤ *start time* < 1000000 ; 0 < *duration* < 1000000 ; 0 < price < 100000<br> 
+>    except for O[N] the last order for which *start time* = 2000000, *duration* = 0, *price* = 0
+> 
+> sort O by *start time*;<br>
+> for i starting at N-1 until 0:<br>
+>   *price(O[i])* ←  max(*price(O[i])* + *price(O[k])*, *price(O[i+1])*)<br>
+>   where k = mimimum[ j | *start time(O[j])* ≥ *start time(O[i])* + *duration(O[i])*
+>
+> *price(O[0])* = best profit for the array of orders.
 We have many small and less small problems to solve. Let's launch `gforth`:
 
     > gforth ⏎
@@ -200,9 +213,10 @@ Let's test our definition:
 > *`/MOD ( n,m -- n%m, n/m )` divide n by m, leaving modulo and quotient on the Stack*<br>
 > *`SWAP ( a,b -- b,a )` exchange the two values at the top of the Stack*<br>
 
+## Finding the nearest order at a given time
 ### Comparing orders by start time
 
-This way of encoding an order into a cell is in fact quite convenient, since we can still compare encoded orders for start time:
+The way they are encoded as one single cell, order can still be compared on start time, since
  
 <center>*V* = (*t* x 10⁶ + *d*) x 10⁵ + *p*, *V'* = (*t'* x 10⁶ + *d'*) x 10⁵ + *p'*,</center>
 
@@ -215,3 +229,25 @@ For example, an order starting at 5 with duration 0 and price 0, is greater than
 >     5 0 0   ORDER>CELL  ⏎  ok 
 >     0 5 100 ORDER>CELL  ⏎  ok 
 >     > .  ⏎  -1 ok
+
+### Searching for the nearest order
+
+Let's suppose the `ORDERS` array contains orders sorted by start time, and the last order -- sitting at the position defined by `#ORDERS` is the "maximum" order:
+
+    0 5 100 ORDER>CELL ORDERS !
+    3 7 140 ORDER>CELL ORDERS 1 CELLS + !
+    5 9  70 ORDER>CELL ORDERS 2 CELLS + !
+    3 7  80 ORDER>CELL ORDERS 3 CELLS + !
+    2000000 0 0  ORDER>CELL ORDERS 4 CELLS + !
+    5 #ORDERS !
+
+To find the nearest order to a given time, we can start at the beginning of the array, compare the content of the cell there with our time; if the time is greater, we increment the address by one cell and repeat the loop, if it's lower or equal, we exit the loop, and we have the address of that order. If all the orders have been compared, then the last order with start time = 2000000 will provoke the exit.
+
+    : NEAREST ( t,addr -- addr  nearest order with start time >= t )
+        BEGIN
+            OVER OVER   ( t,addr,t,addr ) 
+            @ >         ( t,addr,flag )
+        WHILE CELL+     ( t,a  )
+        REPEAT NIP ;    ( addr )
+    
+The words `BEGIN`, `WHILE` and `REPEAT` work together in a colon definition. `WHILE` pulls the top of the stack: if it is non zero, the execution continues; if it is zero, the execution jumps after the `REPEAT` word. `REPEAT` make the execution jump to just after the `BEGIN` word.
