@@ -121,12 +121,29 @@ But if we turn the problem the other way around, and assuming that the sequence 
 
 Thus an algorithm to solve this problem is:
 
+    given 
+        Order, a structure with t,d,p denote start time, duration, price respectively
+        O, an array of orders
     sort the orders by start time
     declare an array B of size N+1, initialized with 0s
     for i = N-1 to 0
-        B[i] = max(p(i) + B[f(i)], B[i+1])
+        B[i] = max(p(O[i]) + B[f(i)], B[i+1])
     where 
-        t(i),d(i),p(i) = start time, duration and price of order i
-        f(i) = minimum(j | j ← i+1..N, t(j) ≥ t(i)+d(i) ∨ j==N)
+        f(i) = minimum(j | j ← i+1..N, t(j) ≥ t(O[i])+d(O[i]) ∨ j==N)
     B[0] = best profit for the sequence of orders.
     
+Finding the mimimum j for which t(j) is greater or equal to a given time x can be done by binary search sincte the array O is sorted:
+
+    f(i) = find(i+1,N,t(O[i])+d(O[i]))
+    find(l,h,x)= {
+        while(h-l > 1) {
+            m = (h-l)/2 
+            if (t(O[m]) < x)
+                l = m
+            else
+                h = m
+        }
+        return h
+    }
+
+In this algorithm, the number of comparisons falls to O(N.log(N))
