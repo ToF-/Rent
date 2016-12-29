@@ -32,7 +32,6 @@ We have many small and less small problems to solve. Let's launch `gforth`:
     Gforth comes with ABSOLUTELY NO WARRANTY; for details type `license'
     Type `bye' to exit
 
-
 ## Using the Stack memory
 
 Let's suppose we have an order given on the Stack: it's easy, we just enter a *start time*, a *duration*, and a *price*.
@@ -134,7 +133,9 @@ We find the difference to be slighty above 80000 bytes, which the the size that 
 
 It's time to keep a source code for the program we are creating. Let's put what we discovered so far in gforth script file:
 
-    \ Spike.fs   --- solving the RENT problem in gforth !! --- 
+    \ Rent.fs
+    \ Solving the RENT problem in gforth
+
 
     10000 CONSTANT MAX-ORDERS
     VARIABLE #ORDERS
@@ -149,10 +150,13 @@ And we can launch __gforth__ with this script:
 >     Type `bye' to exit
 >     PROFITS ORDERS - . 80040  ok
 >     #ORDERS ? 0  ok
+>     BYE ⏎
 
 ###✍
+> *`\ comments` ignore the rest of the line*<br>
+> *`? ( addr -- )` print the value stored at addr*<br>
+> *`BYE` end the interpretation and leave gforth*<br>
 > *`gforth <file>` launch gforth and execute everything that is included in the given file*<br>
-> *`? ( addr -- )` print the value stored ut addr*<br>
 
 ## Storing orders
 
@@ -176,7 +180,7 @@ Let's write a new word in our script that will do that. It will be our first *co
         ROT + 100000 *  ( p,td_ )
         + ;             ( tdp )
 
-And we can load the script again to test it:
+And we can load the script again and then test our new word:
 
 >     gforth Spike.fs ⏎
 >     7 140 ORDER>CELL . 300000700140 ⏎ ok 
@@ -213,6 +217,80 @@ Let's test our definition:
 > *`/MOD ( n,m -- n%m, n/m )` divide n by m, leaving modulo and quotient on the Stack*<br>
 > *`SWAP ( a,b -- b,a )` exchange the two values at the top of the Stack*<br>
 
+## Writing a test script 
+
+There should be a way to test our definitions without the hassle of entering test data and visually checking the results on the Stack.
+
+We will rely on the [`tst`](http://irdvo.nl/FFL/docs/tst.html) library. Let's write a test script:
+
+    \ Tests.fs
+
+    REQUIRE ffl/tst.fs
+    T{
+    ." dummy test" CR   \ display some explanation + carriage return
+    2 3 +  4 ?S         \ checks that 2+3 = 4, which will fail
+    }T
+    BYE
+
+Here's what happens when we launch a test that fails:
+
+>     gforth Tests.fs ⏎
+>     dummy test
+>     stack contents mismatch:     2 3 +  4 ?S
+>       expecting 4 and found 5
+
+Making the test pass:
+
+    \ Tests.fs
+
+    REQUIRE ffl/tst.fs
+    T{
+    ." dummy test" CR   \ display some explanation + carriage return
+    2 2 +  4 ?S         \ checks that 2+2 = 4, which will pass
+    }T
+    BYE
+
+Here's what happens when we launch a test that passes:
+
+>     gforth Tests.fs ⏎
+>     dummy test
+
+###✍
+> *`REQUIRE path` load and interpret the file given by path if it was not already loaded*<br>
+> *`." xx … x"` start storing following charaters for display until `"` is met*<br>
+> *`"` display the string of characters started with `."`*<br> 
+> *`T{` start a test*<br>
+> *`}T` end a test and check for stack overflow*<br>
+> *`?S ( a,b -- )` in a test construct, check that a and b are equals*<br>
+
+## Writing our first tests
+
+From now on, we will write tests in our test script, so that we can keep track of what we learn, and change our code while making sure that we don't introduce bugs.
+
+    \ Tests.fs  Tests for Rent
+
+    REQUIRE ffl/tst.fs  \  Forth Foundation Library  Testing definitions
+    REQUIRE Rent.fs     
+
+    T{
+
+    ." an order can be encoded and decoded to and from a cell" CR
+        0 5 100 ORDER>CELL
+        3 7 140 ORDER>CELL
+        SWAP
+        CELL>ORDER 100 ?S 5 ?S 0 ?S
+        CELL>ORDER 140 ?S 7 ?S 3 ?S
+
+    }T
+    BYE
+
+In this test, we encode two distinct orders into two cells. Then we exchange the values at the top of the Stack, so that the first encoded order is at the top of the Stack, and the second just behind. When we decode the value at tthe top of the Stack, we should find the price, duration and start time of the first order. After these checks, the remaining value on the Stack is the second encoded order. We decode that order and check its price, duration, and start time. 
+
+>     gforth Tests.fs ⏎
+>     an order can be encoded and decoded to and from a cell
+
+The test just display its label without any error.
+
 ## Finding the nearest order at a given time
 ### Comparing orders by start time
 
@@ -223,12 +301,28 @@ The way they are encoded as one single cell, order can still be compared on star
 <center>*t* > *t'* ⇒ *V* > *V'* </center>
 <center>*V* > *V'* ⇒ *t* ≥ *t'* </center>
 
-For example, an order starting at 5 with duration 0 and price 0, is greater than an order starting at 0 with duration 5 and price 100:
+Let's write a test: 
+    T{
+        …
+        …
 
->     gforth Spike.fs ⏎
->     5 0 0   ORDER>CELL  ⏎  ok 
->     0 5 100 ORDER>CELL  ⏎  ok 
->     > .  ⏎  -1 ok
+    ." encoded orders can be compared on start time" CR
+        5 0 0   ORDER>CELL
+        0 5 100 ORDER>CELL 
+        > ?TRUE
+        3 0 0   ORDER>CELL
+        3 7 140 ORDER>CELL
+        <= ?TRUE
+    }T
+    BYE
+
+And this new test passes too.
+An order starting at 5 with duration 0 and price 0, is greater than an order starting at 0 with duration 5 and price 100. An order starting at 3 with duration 0 and price 0 is smaller or equal than an order starting at 3 with duration 7 and price 140.
+
+###✍
+> *`> ( a,b -- flag)` leaves -1 (true) on the Stack if a > b, 0 otherwise*<br>
+> *`<= ( a,b -- flag)` leaves -1 (true) on the Stack if a <= b, 0 otherwise*<br>
+> *`?TRUE ( flag -- )` in a test construct, checks that the top of the Stack is true*<br>
 
 ### Searching for the nearest order
 
