@@ -96,13 +96,13 @@ Or we can *store* a new value into it:
 
 ## Using the Dictionary: Arrays
 
-Obviously, we are not going to create 10000 variables to store the orders: we need a way to store several values starting at a given address. We do that by creating a new entry -- let's call it `ORDERS`, in the Dictionary:
+Obviously, we are not going to create 10001 variables to store the orders: we need a way to store several values starting at a given address. We do that by creating a new entry -- let's call it `ORDERS`, in the Dictionary:
 
     CREATE ORDERS ⏎ ok
 
-Then we must *reserve* the right amount of memory bytes to store our 10000 orders. How much should that be? We are not sure yet. Let's suppose that an order will occupy no more than 8 bytes of memory. In fact 8 bytes is what it take to store an integer value -- called a *cell* -- in gforth, and we will have 10000 orders, thus:
+Then we must *reserve* the right amount of memory bytes to store our 10001 orders. How much should that be? We are not sure yet. Let's suppose that an order will occupy no more than 8 bytes of memory. In fact 8 bytes is what it take to store an integer value -- called a *cell* -- in gforth, and we will have 10001 of these, thus:
 
-    MAX-ORDERS CELLS ALLOT  ⏎ ok
+    MAX-ORDERS 1+ CELLS ALLOT  ⏎ ok
 
 The word `CELLS` multiplies the value on the Stack by the standard size of a cell in bytes.
 
@@ -110,16 +110,15 @@ Now `ORDERS` is a new word in the Dictionary, and its effect is to put the addre
 
     ORDERS . ⏎  4451815928 ok
 
-Let's create another entry: we need another array of 10001 integers, representing the best profit for each order (plus an initial zero value). Let's call this new array `PROFIT`:
+Let's create another entry: we need another variable that will represent the address of the last order put in the array. That's because we won't necessarily have as much as 10000 orders in the input.
 
-    CREATE PROFIT MAX-ORDERS 1+ CELLS ALLOT ⏎ ok
-    PROFIT . ⏎  4451895968 ok
+    VARIABLE LAST-ORDER
 
-Now if subtract the `PROFIT` address from the `ORDERS` address:
+Now if subtract the `LAST-ORDER` address from the `ORDERS` address:
 
-    PROFIT ORDERS - . ⏎ 80040
+    LAST-ORDER ORDERS - . ⏎ 80056
 
-We find the difference to be slighty above 80000 bytes, which the the size that we alloted for the `ORDERS` entry.
+We find the difference to be equal the size we alloted for the `ORDERS` entry, plus 48 bytes used to store the `LAST-ORDER` entry internals. 
 
 ###✍
 > *`CREATE <name> ( -- )` create a new entry `name` in the Dictionary*<br>
@@ -139,8 +138,8 @@ It's time to keep a source code for the program we are creating. Let's put what 
 
     10000 CONSTANT MAX-ORDERS
     VARIABLE #ORDERS
-    CREATE ORDERS  MAX-ORDERS CELLS ALLOT
-    CREATE PROFIT  MAX-ORDERS 1+ CELLS ALLOT
+    CREATE ORDERS MAX-ORDERS 1+ CELLS ALLOT 
+    VARIABLE LAST-ORDER
 
 And we can launch __gforth__ with this script:
 
@@ -148,7 +147,7 @@ And we can launch __gforth__ with this script:
 >     Gforth 0.7.2, Copyright (C) 1995-2008 Free Software Foundation, Inc.
 >     Gforth comes with ABSOLUTELY NO WARRANTY; for details type `license'
 >     Type `bye' to exit
->     PROFITS ORDERS - . 80040  ok
+>     LAST-ORDER ORDERS - . 80048  ok
 >     #ORDERS ? 0  ok
 >     BYE ⏎
 
@@ -290,6 +289,13 @@ In this test, we encode two distinct orders into two cells. Then we exchange the
 >     an order can be encoded and decoded to and from a cell
 
 The test just display its label without any error.
+
+## Storing orders in the array
+
+To store an order in the next free position of our array, we need to encode it as a cell value, then to store that value at the next free position in the array. This position is given by the variable `LAST-ORDER`. This variable will be initially set to the first position in the array, which is equal to the beginning of the `ORDERS` array itself. Let's write a test:
+
+QQQ
+  
 
 ## Finding the nearest order at a given time
 ### Comparing orders by start time
