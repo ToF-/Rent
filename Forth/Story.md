@@ -175,7 +175,7 @@ A simple and reliable way to encode 3 distinct values *t*,*d*,*p* in one cell is
 
 Let's write a new word in our script that will do that. It will be our first *colon definition*: 
 
-    : ORDER>CELL ( t,d,p -- n  encode an order in a single cell )
+    : ENCODE-ORDER ( t,d,p -- n  encode an order in a single cell )
         ROT  1000000 *  ( d,p,t__ )
         ROT + 100000 *  ( p,td_ )
         + ;             ( tdp )
@@ -183,9 +183,9 @@ Let's write a new word in our script that will do that. It will be our first *co
 And we can load the script again and then test our new word:
 
 >     gforth Spike.fs ⏎
->     7 140 ORDER>CELL . 300000700140 ⏎ ok 
->     900000 800000 50000 ORDER>CELL . 90000080000050000 ⏎ ok 
->     999999 888888 55555 ORDER>CELL . 99999988888855555 ⏎ ok
+>     7 140 ENCODE-ORDER . 300000700140 ⏎ ok 
+>     900000 800000 50000 ENCODE-ORDER . 90000080000050000 ⏎ ok 
+>     999999 888888 55555 ENCODE-ORDER . 99999988888855555 ⏎ ok
 
 ###✍
 > *`: <name>` start a colon definition for name, compile every following word until `;`*<br>
@@ -199,7 +199,7 @@ Decoding a cell value into an order, i.e. into 3 values of *start time*, *durati
 
 Hence the definition:
 
-    : CELL>ORDER ( n -- t,d,p  decode a cell into an order )
+    : DECODE-ORDER ( n -- t,d,p  decode a cell into an order )
         100000  /MOD    ( p,td )
         1000000 /MOD    ( p,d,t )
         SWAP ROT ;      ( t,d,p )
@@ -209,9 +209,9 @@ Hence the definition:
 Let's test our definition:
 
 >     gforth Spike.fs ⏎
->     3 7 140 ORDER>CELL  ⏎  ok 
+>     3 7 140 ENCODE-ORDER  ⏎  ok 
 >     .S <1> 300000700140 ⏎  ok 
->     CELL>ORDER .S <3> 3 7 140 ⏎  ok 
+>     DECODE-ORDER .S <3> 3 7 140 ⏎  ok 
 
 ###✍
 > *`/MOD ( n,m -- n%m, n/m )` divide n by m, leaving modulo and quotient on the Stack*<br>
@@ -275,11 +275,11 @@ From now on, we will write tests in our test script, so that we can keep track o
     T{
 
     ." an order can be encoded and decoded to and from a cell" CR
-        0 5 100 ORDER>CELL
-        3 7 140 ORDER>CELL
+        0 5 100 ENCODE-ORDER
+        3 7 140 ENCODE-ORDER
         SWAP
-        CELL>ORDER 100 ?S 5 ?S 0 ?S
-        CELL>ORDER 140 ?S 7 ?S 3 ?S
+        DECODE-ORDER 100 ?S 5 ?S 0 ?S
+        DECODE-ORDER 140 ?S 7 ?S 3 ?S
 
     }T
     BYE
@@ -302,22 +302,22 @@ The way they are encoded as one single cell, order can still be compared on star
 <center>*V* > *V'* ⇒ *t* ≥ *t'* </center>
 
 Let's write a test: 
+
     T{
         …
         …
 
     ." encoded orders can be compared on start time" CR
-        5 0 0   ORDER>CELL
-        0 5 100 ORDER>CELL 
+        5 0 0   ENCODE-ORDER
+        0 5 100 ENCODE-ORDER 
         > ?TRUE
-        3 0 0   ORDER>CELL
-        3 7 140 ORDER>CELL
+        3 0 0   ENCODE-ORDER
+        3 7 140 ENCODE-ORDER
         <= ?TRUE
     }T
     BYE
 
-And this new test passes too.
-An order starting at 5 with duration 0 and price 0, is greater than an order starting at 0 with duration 5 and price 100. An order starting at 3 with duration 0 and price 0 is smaller or equal than an order starting at 3 with duration 7 and price 140.
+And this new test passes too: an order starting at 5 with duration 0 and price 0, is greater than an order starting at 0 with duration 5 and price 100. An order starting at 3 with duration 0 and price 0 is smaller or equal than an order starting at 3 with duration 7 and price 140.
 
 ###✍
 > *`> ( a,b -- flag)` leaves -1 (true) on the Stack if a > b, 0 otherwise*<br>
@@ -328,11 +328,11 @@ An order starting at 5 with duration 0 and price 0, is greater than an order sta
 
 Let's suppose the `ORDERS` array contains orders sorted by start time, and the last order -- sitting at the position defined by `#ORDERS` is the "maximum" order:
 
-    0 5 100 ORDER>CELL ORDERS !
-    3 7 140 ORDER>CELL ORDERS 1 CELLS + !
-    5 9  70 ORDER>CELL ORDERS 2 CELLS + !
-    3 7  80 ORDER>CELL ORDERS 3 CELLS + !
-    2000000 0 0  ORDER>CELL ORDERS 4 CELLS + !
+    0 5 100 ENCODE-ORDER ORDERS !
+    3 7 140 ENCODE-ORDER ORDERS 1 CELLS + !
+    5 9  70 ENCODE-ORDER ORDERS 2 CELLS + !
+    3 7  80 ENCODE-ORDER ORDERS 3 CELLS + !
+    2000000 0 0  ENCODE-ORDER ORDERS 4 CELLS + !
     5 #ORDERS !
 
 To find the nearest order to a given time, we can start at the beginning of the array, compare the content of the cell there with our time; if the time is greater, we increment the address by one cell and repeat the loop, if it's lower or equal, we exit the loop, and we have the address of that order. If all the orders have been compared, then the last order with start time = 2000000 will provoke the exit.

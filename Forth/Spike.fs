@@ -17,7 +17,7 @@ CREATE PROFIT  MAX-ORDERS 1+ CELLS ALLOT
 
 : NEAREST ( t,addr -- addr  nearest order with start time >= t )
     BEGIN
-        OVER OVER 
+        2DUP
         @ > 
     WHILE CELL+ 
     REPEAT NIP ;
