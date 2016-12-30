@@ -22,7 +22,23 @@ T{
 
 ." after initialization, there is no order in the array" CR
     INITIALIZE
-    LAST-ORDER @ ORDERS ?S 
+    @NEXT-ORDER @ ORDERS ?S 
+
+." adding an order stores that order and update next order position" CR
+    INITIALIZE
+    0 5 100 ADD-ORDER
+    ORDERS @ DECODE-ORDER 100 ?S 5 ?S 0 ?S
+    @NEXT-ORDER @ ORDERS CELL+ ?S
+
+." finding the nearest order to a given time or the maximum order" CR
+    INITIALIZE
+    0 5 100 ADD-ORDER
+    3 7 140 ADD-ORDER
+    5 9  80 ADD-ORDER
+    6 9  70 ADD-ORDER
+    2000000 0 0 ADD-ORDER
+    5 ORDERS NEAREST-ORDER @ DECODE-ORDER 80 ?S 9 ?S 5 ?S
+    10 ORDERS CELL+ NEAREST-ORDER @ DECODE-ORDER 0 ?S 0 ?S 2000000 ?S
 }T
 BYE
 

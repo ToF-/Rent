@@ -112,13 +112,13 @@ Now `ORDERS` is a new word in the Dictionary, and its effect is to put the addre
 
 Let's create another entry: we need another variable that will represent the address of the last order put in the array. That's because we won't necessarily have as much as 10000 orders in the input.
 
-    VARIABLE LAST-ORDER
+    VARIABLE @NEXT-ORDER
 
-Now if subtract the `LAST-ORDER` address from the `ORDERS` address:
+Now if subtract the `@NEXT-ORDER` address from the `ORDERS` address:
 
-    LAST-ORDER ORDERS - . ⏎ 80056
+    @NEXT-ORDER ORDERS - . ⏎ 80056
 
-We find the difference to be equal the size we alloted for the `ORDERS` entry, plus 48 bytes used to store the `LAST-ORDER` entry internals. 
+We find the difference to be equal the size we alloted for the `ORDERS` entry, plus 48 bytes used to store the `@NEXT-ORDER` entry internals. 
 
 ###✍
 > *`CREATE <name> ( -- )` create a new entry `name` in the Dictionary*<br>
@@ -139,7 +139,7 @@ It's time to keep a source code for the program we are creating. Let's put what 
     10000 CONSTANT MAX-ORDERS
     VARIABLE #ORDERS
     CREATE ORDERS MAX-ORDERS 1+ CELLS ALLOT 
-    VARIABLE LAST-ORDER
+    VARIABLE @NEXT-ORDER
 
 And we can launch __gforth__ with this script:
 
@@ -147,7 +147,7 @@ And we can launch __gforth__ with this script:
 >     Gforth 0.7.2, Copyright (C) 1995-2008 Free Software Foundation, Inc.
 >     Gforth comes with ABSOLUTELY NO WARRANTY; for details type `license'
 >     Type `bye' to exit
->     LAST-ORDER ORDERS - . 80048  ok
+>     @NEXT-ORDER ORDERS - . 80048  ok
 >     #ORDERS ? 0  ok
 >     BYE ⏎
 
@@ -292,15 +292,51 @@ The test just display its label without any error.
 
 ## Storing orders in the array
 
-To store an order in the next free position of our array, we need to encode it as a cell value, then to store that value at the next free position in the array. This position is given by the variable `LAST-ORDER`. This variable will be initially set to the first position in the array, which is equal to the beginning of the `ORDERS` array itself. Let's write a test:
+To fill the array with orders, we need to encode each order as a cell value, then store that value at the next free position in the array. This position is given by the variable `@NEXT-ORDER`. This variable will be initially set to the first position in the array, which is equal to the beginning of the `ORDERS` array itself. Let's write a test:
 
-QQQ
+    T{
+    …
+
+    ." after initialization, there is no order in the array" CR
+        INITIALIZE
+        @NEXT-ORDER @ ORDERS ?S 
+    }T
+    
+Adding a new word to our script:
+
+    \ Rent.fs
+    …
+        
+    : INITIALIZE ( -- sets variables to initial values )
+        ORDERS @NEXT-ORDER ! ;
   
+New test: when we add an order, the order is stored in the array, and the next order position is updated.
+
+    T{
+    …
+
+    ." adding an order stores that order and update next order position" CR
+        INITIALIZE
+        0 5 100 ADD-ORDER
+        ORDERS @ DECODE-ORDER 100 ?S 5 ?S 0 ?S
+        @NEXT-ORDER @ ORDERS CELL+ ?S
+
+The word `ADD-ORDER` will take a start time, a duration and a price on the Stack, encode these and store the value in the next available position, which will then be increased by a cell size.
+
+    \ Rent.fs
+    …
+    : ADD-ORDER ( t,d,p -- add an order to the array )
+        ENCODE-ORDER @NEXT-ORDER @ !
+        CELL @NEXT-ORDER +! ;
+
+###✍
+> *`CELL+ ( addr -- addr+c )` increase the address of the Stack by a cell size*<br>
+> *`+! ( n,addr -- )` add n to the value at address addr*<br>
 
 ## Finding the nearest order at a given time
 ### Comparing orders by start time
 
-The way they are encoded as one single cell, order can still be compared on start time, since
+Given the way they are encoded as single cells, orders can still be compared on start time, since
  
 <center>*V* = (*t* x 10⁶ + *d*) x 10⁵ + *p*, *V'* = (*t'* x 10⁶ + *d'*) x 10⁵ + *p'*,</center>
 
@@ -332,22 +368,35 @@ And this new test passes too: an order starting at 5 with duration 0 and price 0
 
 ### Searching for the nearest order
 
-Let's suppose the `ORDERS` array contains orders sorted by start time, and the last order -- sitting at the position defined by `#ORDERS` is the "maximum" order:
+Let's suppose the `ORDERS` array contains orders sorted by start time, followed by a last order, the "maximum" order. Then the word `NEAREST`, when given a time value and a starting address, will return the position of the nearest order having start time greater or equal to the time value, or the position of the maximum order if there is no near compatible order. 
 
-    0 5 100 ENCODE-ORDER ORDERS !
-    3 7 140 ENCODE-ORDER ORDERS 1 CELLS + !
-    5 9  70 ENCODE-ORDER ORDERS 2 CELLS + !
-    3 7  80 ENCODE-ORDER ORDERS 3 CELLS + !
-    2000000 0 0  ENCODE-ORDER ORDERS 4 CELLS + !
-    5 #ORDERS !
+    T{
+        …
+    ." finding the nearest order to a given time or the maximum order" CR
+        INITIALIZE
+        0 5 100 ADD-ORDER
+        3 7 140 ADD-ORDER
+        5 9  80 ADD-ORDER
+        6 9  70 ADD-ORDER
+        2000000 0 0 ADD-ORDER
+        5 ORDERS NEAREST-ORDER @ DECODE-ORDER 80 ?S 9 ?S 5 ?S
+        10 ORDERS CELL+ NEAREST-ORDER @ DECODE-ORDER 0 ?S 0 ?S 2000000 ?S
 
-To find the nearest order to a given time, we can start at the beginning of the array, compare the content of the cell there with our time; if the time is greater, we increment the address by one cell and repeat the loop, if it's lower or equal, we exit the loop, and we have the address of that order. If all the orders have been compared, then the last order with start time = 2000000 will provoke the exit.
+To find the nearest order to a given time, we first encode that time in a cell value than we will compare to the stored orders; then we start `BEGIN … REPEAT` loop, and fetching the order value at the address on the Stack, we compare our given value to this value; if it is greater, we increment the address by one cell and repeat the loop, if it's lower or equal, we exit the loop, and we have the address of that order. If all the orders have been compared, then the last order with start time = 2000000 will provoke the exit.
 
-    : NEAREST ( t,addr -- addr  nearest order with start time >= t )
+    : NEAREST-ORDER ( t,addr -- find the nearest compatible order )
+        SWAP 0 0 ENCODE-ORDER SWAP
         BEGIN
-            OVER OVER   ( t,addr,t,addr ) 
-            @ >         ( t,addr,flag )
-        WHILE CELL+     ( t,a  )
-        REPEAT NIP ;    ( addr )
-    
+            2DUP @ >
+        WHILE 
+            CELL+
+        REPEAT NIP ;
+
 The words `BEGIN`, `WHILE` and `REPEAT` work together in a colon definition. `WHILE` pulls the top of the stack: if it is non zero, the execution continues; if it is zero, the execution jumps after the `REPEAT` word. `REPEAT` make the execution jump to just after the `BEGIN` word.
+
+###✍
+> *`BEGIN … ` mark the beginning of a loop*<br>
+> *`REPEAT`  execution jumps after the `BEGIN` word in the definition*<br>
+> *`WHILE ( flag -- )` if the top of the Stack is zero, execution jumps after the `REPEAT` word in the definition; if it's non zero, execution continues until the `REPEAT` word*<br>
+> *`2DUP ( a,b -- a,b,a,b )` duplicate the two values at the top of the Stack*<br>
+> *`NIP ( a,b -- b )` remove the value under the top of the Stack*<br>
