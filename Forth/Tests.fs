@@ -22,6 +22,7 @@ T{
 
 ." after initialization, there is no order in the array" CR
     INITIALIZE
+    #ORDERS @ 0 ?S
     @NEXT-ORDER @ ORDERS ?S 
 
 ." adding an order stores that order and update next order position" CR
@@ -29,6 +30,12 @@ T{
     0 5 100 ADD-ORDER
     ORDERS @ DECODE-ORDER 100 ?S 5 ?S 0 ?S
     @NEXT-ORDER @ ORDERS CELL+ ?S
+    #ORDERS @ 1 ?S
+
+." adding an order is not allowed if there is already 10000 orders in the array" CR
+    10000 #ORDERS !
+    3 7 140 ADD-ORDER 
+    #ORDERS @ 10000 ?S
 
 ." finding the nearest order to a given time or the maximum order" CR
     INITIALIZE

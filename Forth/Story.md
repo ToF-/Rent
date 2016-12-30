@@ -76,7 +76,7 @@ Let's also define a variable to store the actual number of orders:
     VARIABLE #ORDERS ⏎  ok
     #ORDERS . ⏎  4458332328  ok
 
-When executed a variable leaves its *address* on the Stack. It's up to us programmers to know what to do with it. We can *fetch* its value: 
+When executed, a variable leaves its *address* on the Stack. It's up to us programmers to know what to do with it. We can *fetch* its value: 
 
     #ORDERS @ . ⏎ 0 ok
 
@@ -299,17 +299,18 @@ To fill the array with orders, we need to encode each order as a cell value, the
 
     ." after initialization, there is no order in the array" CR
         INITIALIZE
+        #ORDERS @ 0 ?S
         @NEXT-ORDER @ ORDERS ?S 
-    }T
     
-Adding a new word to our script:
+Adding a new word to our script will make the test pass:
 
     \ Rent.fs
     …
         
     : INITIALIZE ( -- sets variables to initial values )
+        #ORDERS OFF
         ORDERS @NEXT-ORDER ! ;
-  
+
 New test: when we add an order, the order is stored in the array, and the next order position is updated.
 
     T{
@@ -320,6 +321,7 @@ New test: when we add an order, the order is stored in the array, and the next o
         0 5 100 ADD-ORDER
         ORDERS @ DECODE-ORDER 100 ?S 5 ?S 0 ?S
         @NEXT-ORDER @ ORDERS CELL+ ?S
+        #ORDERS @ 1 ?S
 
 The word `ADD-ORDER` will take a start time, a duration and a price on the Stack, encode these and store the value in the next available position, which will then be increased by a cell size.
 
@@ -327,9 +329,56 @@ The word `ADD-ORDER` will take a start time, a duration and a price on the Stack
     …
     : ADD-ORDER ( t,d,p -- add an order to the array )
         ENCODE-ORDER @NEXT-ORDER @ !
-        CELL @NEXT-ORDER +! ;
+        CELL @NEXT-ORDER +!
+        1 #ORDERS +! ;
+
+Adding an order when there is already 10000 orders in the array should not be allowed:
+
+    ." adding an order is not allowed if there is already 10000 orders in the array" CR
+        10000 #ORDERS !
+        3 7 140 ADD-ORDER 
+        #ORDERS @ 10000 ?S
+
+Of course this does not pass:
+
+>     gforth Tests.fs ⏎
+>     an order can be encoded and decoded to and from a cell
+>     encoded orders can be compared on start time
+>     after initialization, there is no order in the array
+>     adding an order stores that order and update next order position
+>     adding an order is not allowed if there is already 10000 orders in the array
+>     stack contents mismatch:     #ORDERS @ 10000 ?S
+>       expecting 10000 and found 10001
+
+To make it pass, we start the word with an `IF … ELSE … THEN` construct; if the number of orders is smaller than the maximum, the order will be added, else, the order value will be removed from the Stack.
+
+    : ADD-ORDER ( t,d,p -- add an order to the array )
+        ENCODE-ORDER
+        #ORDERS @ MAX-ORDERS < IF
+            @NEXT-ORDER @ !
+            CELL @NEXT-ORDER +!
+            1 #ORDERS +! 
+        ELSE
+            DROP
+        THEN ;
+
+Here we choose to silently cancel the operation, but we could also force the program to halt with an error message:
+
+    : ADD-ORDER ( t,d,p -- add an order to the array )
+        ENCODE-ORDER
+        #ORDERS @ MAX-ORDERS < IF
+            @NEXT-ORDER @ !
+            CELL @NEXT-ORDER +!
+            1 #ORDERS +! 
+        ELSE
+            ABORT" error: out of maximum # orders limit."
+        THEN ;
 
 ###✍
+> *`IF … ( flag -- )` if the value on the Stack is zero, execution jumps after the next matching `ELSE` or `THEN` (if no else part). Otherwise, execution continues*<br>
+> *`ELSE …` end of the `IF` part in a conditional construct*<br>
+> *`THEN` end of a conditional construct*<br>
+> *`ABORT" …"` halt execution and display the message characters until a `"` is met*<br>
 > *`CELL+ ( addr -- addr+c )` increase the address of the Stack by a cell size*<br>
 > *`+! ( n,addr -- )` add n to the value at address addr*<br>
 

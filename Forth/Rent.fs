@@ -17,11 +17,18 @@ VARIABLE @NEXT-ORDER
     SWAP ROT ;      ( t,d,p )
 
 : INITIALIZE ( -- sets variables to initial values )
+    #ORDERS OFF
     ORDERS @NEXT-ORDER ! ;
 
 : ADD-ORDER ( t,d,p -- add an order to the array )
-    ENCODE-ORDER @NEXT-ORDER @ !
-    CELL @NEXT-ORDER +! ;
+    ENCODE-ORDER
+    #ORDERS @ MAX-ORDERS < IF
+        @NEXT-ORDER @ !
+        CELL @NEXT-ORDER +!
+        1 #ORDERS +! 
+    ELSE
+        DROP
+    THEN ;
 
 : NEAREST-ORDER ( t,addr -- find the nearest compatible order )
     SWAP 0 0 ENCODE-ORDER SWAP
