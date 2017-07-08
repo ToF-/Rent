@@ -28,13 +28,30 @@ int max(int a, int b) {
 }
 
 int next_compatible(int j, int max_orders) {
-    for ( int k=j+1; k<=max_orders; k++) {
-        if (Orders[k].start_time >= Orders[j].start_time + Orders[j].duration) 
-            return k;
+    int l = j+1;
+    int h = max_orders;
+    int m;
+    int end_time = Orders[j].start_time + Orders[j].duration;
+    int result;
+    while (l <= h) {
+        m = l + (h - l) / 2;
+        if(Orders[m].start_time < end_time)
+            l = m + 1;
+        else {
+            result = m;
+            h = m - 1;
+        }
     }
-    return max_orders;
+    return result;
 }
 
+int next_compatible_slow(int j, int max_orders) {
+    int end_time = Orders[j].start_time + Orders[j].duration;
+    for (int k=j+1; k<=max_orders; k++)
+        if(Orders[k].start_time >= end_time)
+            return k;
+    return max_orders;
+}
 int calc_value(int max_orders) {
     for(int j=max_orders-2; j>=0; j--) {
         int k = next_compatible(j,max_orders);
