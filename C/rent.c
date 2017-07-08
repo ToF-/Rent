@@ -6,7 +6,7 @@
 
 struct order{
     int start_time;
-    int duration;
+    int end_time;
     int value;
 } Orders[MAXORDER];
 
@@ -31,7 +31,7 @@ int next_compatible(int j, int max_orders) {
     int l = j+1;
     int h = max_orders;
     int m;
-    int end_time = Orders[j].start_time + Orders[j].duration;
+    int end_time = Orders[j].end_time;
     int result;
     while (l <= h) {
         m = l + (h - l) / 2;
@@ -46,7 +46,7 @@ int next_compatible(int j, int max_orders) {
 }
 
 int next_compatible_slow(int j, int max_orders) {
-    int end_time = Orders[j].start_time + Orders[j].duration;
+    int end_time = Orders[j].end_time;
     for (int k=j+1; k<=max_orders; k++)
         if(Orders[k].start_time >= end_time)
             return k;
@@ -63,21 +63,21 @@ int calc_value(int max_orders) {
 int get_orders() {
     int max_orders = get_int(Line);
     for(int j=0; j<max_orders; j++) {
+        int s,d,v;
         get_line(Line);
-        sscanf(Line, "%d %d %d", 
-                &Orders[j].start_time, 
-                &Orders[j].duration, 
-                &Orders[j].value); 
+        sscanf(Line, "%d %d %d", &s, &d, &v);
+
+        Orders[j].start_time = s;
+        Orders[j].end_time = s+d;
+        Orders[j].value = v; 
     }
     return max_orders;
 }
 
-void initialize() {
-    for (int i=0; i<MAXORDER; i++) {
-        Orders[i].start_time = 10000000;
-        Orders[i].duration   = 0;
-        Orders[i].value      = 0;
-    }
+void add_sentinel(int max_orders) {
+    Orders[max_orders-1].start_time = 2000000;
+    Orders[max_orders-1].end_time   = 2000000;
+    Orders[max_orders-1].value      = 0;
 }
 
 int compare_orders(const void *a, const void *b) {
@@ -88,7 +88,7 @@ int compare_orders(const void *a, const void *b) {
     else if (pa->start_time > pb->start_time)
         return 1;
     else 
-        return (pa->duration - pb->duration);
+        return (pa->end_time - pb->end_time);
 }
 void sort_orders(int max_orders) {
     qsort(Orders, max_orders, sizeof(struct order), compare_orders);
@@ -96,8 +96,8 @@ void sort_orders(int max_orders) {
 int main() {
     int max_cases = get_int(Line);
     for(int i=0; i<max_cases; i++) {
-        initialize();
         int max_orders = get_orders() + 1;
+        add_sentinel(max_orders);
         sort_orders(max_orders);
         printf("%d\n", calc_value(max_orders));
     }
