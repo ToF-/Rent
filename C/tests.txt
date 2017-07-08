@@ -1,6 +1,6 @@
 Tests for rent.c
 # cases
-< 4
+< 5
 A single order should result in that order price
 < 1
 < 0 5 100
@@ -22,3 +22,10 @@ Given ordered orders in a small range on distinct times, profit should be optima
 < 5 9 80
 < 6 9 70
 > 180
+Given unordered orders in a small range, profit should be optimal
+< 4
+< 6 9 70
+< 5 9 85
+< 0 5 100
+< 3 7 140
+> 185
