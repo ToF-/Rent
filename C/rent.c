@@ -15,15 +15,24 @@ int get_int(char *line) {
     return result;
 }
 
+int max(int a, int b) {
+    return a > b ? a : b;
+}
+
 int main() {
     int max_cases, max_orders;
     int start_time, duration, price;
+    int value;
     max_cases = get_int(Line);
     for(int i=0; i<max_cases; i++) {
-        get_line(Line);
-        get_line(Line);
-        sscanf(Line, "%d %d %d", &start_time, &duration, &price); 
-        printf("%d\n", price);
+        max_orders = get_int(Line);
+        value = 0;
+        for(int j=0; j<max_orders; j++) {
+            get_line(Line);
+            sscanf(Line, "%d %d %d", &start_time, &duration, &price); 
+            value = max(value, price);           
+        }
+        printf("%d\n", value);
     }
     return 0;
 }
