@@ -12,7 +12,7 @@ impl Order {
 }
 
 fn value(orders: Vec<Order>) -> i32 {
-    0
+    orders.iter().fold(0, |mut sum, order| { sum += order.bid; sum } ) 
 }
 
 #[cfg(test)]
@@ -41,5 +41,18 @@ mod tests {
     fn a_plan_with_zero_orders_is_worth_zero() {
         let p = vec![];
         assert_eq!(0, value(p));
+    }
+
+    #[test]
+    fn a_plan_with_order_is_worth_that_order() {
+        let p = vec![Order { start_time: 0, duration:9, bid: 140 }];
+        assert_eq!(140, value(p));
+    }
+
+    #[test]
+    fn a_plan_with_two_orders_is_worth_the_sum_of_order_bids() {
+        let p = vec![Order { start_time: 0, duration:9, bid: 140 }
+                    ,Order { start_time: 9, duration:5, bid: 120 }];
+        assert_eq!(260, value(p));
     }
 }
