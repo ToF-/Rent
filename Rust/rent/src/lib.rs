@@ -1,45 +1,85 @@
+use std::cmp::Ordering;
+
+#[derive(Eq)]
+#[derive(PartialEq)]
+#[derive(PartialOrd)]
 struct Order {
     start: i64,
     end  : i64,
     value: i64,
 }
 
-fn next_compatible(i:usize, orders:&Vec<Order>) -> usize {
-    let mut result:usize = 0;
-    let mut l = i+1;
-    let mut h = orders.len();
-    let end = orders[i].end;
-    while l <= h {
-        let m = l + (h - l) / 2;
-        if orders[m].start < end {
-            l = m + 1
-        } else {
-            result = m;
-            h = m - 1
-        }
+impl Order {
+    pub fn max() -> Order{
+        Order { start: std::i64::MAX, end: 0, value: 0 }
     }
-    result
+}
+
+impl Ord for Order {
+    fn cmp(&self, other: &Order) -> Ordering {
+        self.start.cmp(&other.start)
+    }
+}
+
+impl From<Vec<i64>> for Order{
+    fn from(vec: Vec<i64>) -> Order {
+        Order{start:vec[0], end:vec[1], value:vec[2]}       
+    }
+}
+
+trait Normal {
+    fn initialize(&mut self);
+}
+
+impl Normal for Order {
+    fn initialize(&mut self) {
+        self.end = self.start + self.end
+    }
+}
+
+impl Normal for Vec<Order> {
+    fn initialize(&mut self) {
+        for order in self{ order.initialize() }
+    }
+}
+trait Value {
+    fn next_compatible(&self, i:usize) -> usize;
+    fn value(&mut self) -> i64;
+}
+
+impl Value for Vec<Order> {
+    fn next_compatible(&self, i:usize) -> usize {
+        let mut result:usize = 0;
+        let mut l = i+1;
+        let mut h = self.len();
+        let end = self[i].end;
+        while l <= h {
+            let m = l + (h - l) / 2;
+            if self[m].start < end {
+                l = m + 1
+            } else {
+                result = m;
+                h = m - 1
+            }
+        }
+        result
+    }
+
+    fn value(&mut self) -> i64 {
+        for i in (0..(self.len())-1).rev() {
+            let j= self.next_compatible(i);
+            self[i].value = std::cmp::max(self[i+1].value, self[i].value + self[j].value)
+        }
+        self[0].value
+    }
 }
 
 fn value(mut orders: Vec<Order>) -> i64 {
-    if orders.len() > 0 {
-        const ORDER_MAX:Order = Order { start: std::i64::MAX, end: 0, value:0 };
-
-        for i in (0..orders.len()) {
-            orders[i].end = orders[i].start + orders[i].end
-        };
-        orders.push(ORDER_MAX);
-        orders.sort_by(|a,b| a.start.cmp(&b.start));
-
-        for i in (0..(orders.len())-1).rev() {
-            let j= next_compatible(i, &orders);
-            orders[i].value = std::cmp::max(orders[i+1].value, orders[i].value + orders[j].value)
-        };
-        orders[0].value
-    }
-    else {
-        0 
-    }
+    assert!(!orders.is_empty(),"empty list of orders!");
+    orders.initialize();
+    orders.push(Order::max());
+    orders.sort();
+    orders.value()
 }
 
 use std::io;
@@ -48,11 +88,7 @@ use std::str::FromStr;
 fn get_i64(l:i64) -> i64 {
     let mut s = String::new();
     io::stdin().read_line(&mut s).expect("read error");
-    let p = i64::from_str(&s.trim());
-    match p {
-        Ok(n) => n,
-        Err(m) => { println!("not an int! at line{}:{}",l,s); 0 }
-    }
+    i64::from_str(&s.trim()).expect("not an int!")
 }
 
 fn main() {
@@ -71,7 +107,7 @@ fn main() {
                 .map(|x| x.parse::<i64>().expect("parse error"))
                 .collect::<Vec<i64>>();
             
-            orders.push(Order{start:vec[0], end:vec[1], value:vec[2]});
+            orders.push(vec.into());
             }
         println!("{}", value(orders))    
     }
@@ -80,12 +116,6 @@ fn main() {
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
-    fn a_plan_with_zero_orders_is_worth_zero() {
-        let mut p = vec![];
-        assert_eq!(0, value(p));
-    }
 
     #[test]
     fn a_plan_with_order_is_worth_that_order() {
