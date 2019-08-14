@@ -1,6 +1,6 @@
 Tests for rent.c
 # cases
-< 4
+< 5
 A single order should result in that order price
 < 1
 < 0 5 100
@@ -19,3 +19,9 @@ Two incompatible orders should result in the max of prices
 < 0 5 1000
 < 3 9 1400
 > 1400
+Three incompatible orders should result in the max of prices
+< 3
+< 0 5 1000
+< 3 9 1400
+< 5 9 800
+> 1800

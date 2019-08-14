@@ -12,6 +12,8 @@ struct order {
     int price;
 } Orders[MAXORDERS];
 
+int Max_orders;
+
 int get_int() {
     int result;
     fgets(Line, MAXLINE, stdin);
@@ -40,14 +42,27 @@ int max(int a, int b) {
     return a > b ? a : b;
 }
 
+int next_compatible(int i) {
+    int end = Orders[i].start_time + Orders[i].duration;
+    
+    int j;
+    for(j=i+1; j < Max_orders && Orders[j].start_time < end; j++);
+    return j;
+}
+
 int profit() {
-    int max_orders = get_orders();
-    if (max_orders == 1)
+    Max_orders = get_orders();
+    if (Max_orders == 1)
         return Orders[0].price;
-    if (Orders[0].start_time + Orders[0].duration 
-        <= Orders[1].start_time)
-        return Orders[0].price + Orders[1].price;
-    return max(Orders[0].price, Orders[1].price) ;
+    for(int i=Max_orders-2; i>=0; i--) {
+        int k = next_compatible(i);
+        int value_with_next_compatible =
+            Orders[i].price + (k < Max_orders ? Orders[k].price : 0);
+
+        Orders[i].price = max(value_with_next_compatible, 
+                              Orders[i+1].price);
+    }   
+    return Orders[0].price;
 }
 
 int main() {
