@@ -2,6 +2,7 @@
 #include <assert.h>
 
 #define MAXLINE 80 /* arbitrary length of input line */
+#define MAXORDERS 10000
 
 char Line[MAXLINE];
 
@@ -9,7 +10,7 @@ struct order {
     int start_time;
     int duration;
     int price;
-};
+} Orders[MAXORDERS];
 
 int get_int() {
     int result;
@@ -27,15 +28,24 @@ void get_order(struct order *order) {
             &order->price);
 }
 
-int profit() {
+int get_orders() {
     int max_orders = get_int(); 
-    int total = 0;
-    for(int j=0; j<max_orders; j++) {
-        struct order order;
-        get_order(&order);
-        total += order.price;
+    for(int i=0; i<max_orders; i++) {
+        get_order(&Orders[i]);
     }   
-    return total;
+    return max_orders;
+}
+int profit() {
+    int max_orders = get_orders();
+    if (max_orders == 1)
+        return Orders[0].price;
+    if (Orders[0].start_time + Orders[0].duration 
+     <= Orders[1].start_time)
+        return Orders[0].price + Orders[1].price;
+    if(Orders[0].price > Orders[1].price) 
+        return Orders[0].price;
+    else
+        return Orders[1].price;
 }
 
 int main() {
