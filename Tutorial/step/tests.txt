@@ -1,0 +1,15 @@
+Test file for rent
+lines starting with < will go in the input test file
+lines starting with > will go in the expected result file
+
+number of cases
+< 2
+number of orders in the case
+< 1
+< 0 5 1000
+expected result
+> 1000
+
+< 1
+< 0 5 4807
+> 4807

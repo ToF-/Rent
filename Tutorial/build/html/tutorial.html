@@ -1,0 +1,699 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+    <title>1. </title>
+    <link href="style.css" rel="stylesheet">
+  </head>
+  <body>
+    <header class="bar">
+      <nav>
+        
+          <a href="#"></a>
+        
+
+        <a href="tutorial.html">beginning</a>
+
+        
+          <a href="#"></a>
+        
+      </nav>
+    </header>
+    <div id="container">
+      <p>First, let&rsquo;s write a test.</p>
+<div class="step">
+  <div class="step-number">
+    1
+  </div>
+
+  
+    
+    <div class="diff">
+      <div class="diff-header">
+        <div class="diff-summary">
+          <p>Step 1: setting up the test harness</p>
+
+        </div>
+        <div class="diff-filename">
+          tests.txt
+        </div>
+      </div>
+      <div class="diff-code">
+        <table>
+        
+          <tr>
+            <td class="line-number">
+              1
+            </td>
+            <td class="line unchanged">Test file for rent
+</td>
+          </tr>
+        
+          <tr>
+            <td class="line-number">
+              2
+            </td>
+            <td class="line unchanged">lines starting with &lt; will go in the input test file
+</td>
+          </tr>
+        
+          <tr>
+            <td class="line-number">
+              3
+            </td>
+            <td class="line unchanged">lines starting with &gt; will go in the expected result file
+</td>
+          </tr>
+        
+          <tr>
+            <td class="line-number">
+              4
+            </td>
+            <td class="line unchanged">
+</td>
+          </tr>
+        
+          <tr>
+            <td class="line-number">
+              5
+            </td>
+            <td class="line unchanged">number of cases
+</td>
+          </tr>
+        
+          <tr>
+            <td class="line-number">
+              6
+            </td>
+            <td class="line unchanged">&lt; 1
+</td>
+          </tr>
+        
+          <tr>
+            <td class="line-number">
+              7
+            </td>
+            <td class="line unchanged">number of orders in the case
+</td>
+          </tr>
+        
+          <tr>
+            <td class="line-number">
+              8
+            </td>
+            <td class="line unchanged">&lt; 1
+</td>
+          </tr>
+        
+          <tr>
+            <td class="line-number">
+              9
+            </td>
+            <td class="line unchanged">&lt; 0 5 1000
+</td>
+          </tr>
+        
+          <tr>
+            <td class="line-number">
+              10
+            </td>
+            <td class="line unchanged">expected result
+</td>
+          </tr>
+        
+          <tr>
+            <td class="line-number">
+              11
+            </td>
+            <td class="line unchanged">&gt; 1000
+</td>
+          </tr>
+        
+        </table>
+      </div>
+    </div>
+  
+</div>
+<p>Our Makefile will include a command to launch the test. This includes 4 actions:</p>
+
+<ul>
+<li>extract the input part of the <code>tests.txt</code> file into a file named <code>input.dat</code></li>
+<li>extrxct the output part of the <code>tests.txt</code> file into a file named <code>expected.dat</code></li>
+<li>execute our rent program on the input file, towards a <code>result.dat</code> file</li>
+<li>compare <code>expected.dat</code> and (actual) <code>result.dat</code></li>
+</ul>
+<div class="step">
+  <div class="step-number">
+    2
+  </div>
+
+  
+    
+    <div class="diff">
+      <div class="diff-header">
+        <div class="diff-summary">
+          <p>Step 1</p>
+
+        </div>
+        <div class="diff-filename">
+          Makefile
+        </div>
+      </div>
+      <div class="diff-code">
+        <table>
+        
+          <tr>
+            <td class="line-number">
+              1
+            </td>
+            <td class="line unchanged"><span class="nl">rent</span><span class="o">:</span> <span class="nf">rent.c</span>
+</td>
+          </tr>
+        
+          <tr>
+            <td class="line-number">
+              2
+            </td>
+            <td class="line unchanged">	cc rent.c -o rent
+</td>
+          </tr>
+        
+          <tr>
+            <td class="line-number">
+              3
+            </td>
+            <td class="line unchanged">
+</td>
+          </tr>
+        
+          <tr>
+            <td class="line-number">
+              4
+            </td>
+            <td class="line unchanged"><span class="nl">test</span><span class="o">:</span> <span class="nf">rent tests.txt</span>
+</td>
+          </tr>
+        
+          <tr>
+            <td class="line-number">
+              5
+            </td>
+            <td class="line unchanged">	sed -n -e <span class="s1">'s/^\(&lt; \)\(.*\)/\2/pw input.dat'</span>      tests.txt &gt;/dev/null
+</td>
+          </tr>
+        
+          <tr>
+            <td class="line-number">
+              6
+            </td>
+            <td class="line unchanged">	sed -n -e <span class="s1">'s/^\(&gt; \)\(.*\)/\2/pw expected.dat'</span>   tests.txt &gt;/dev/null
+</td>
+          </tr>
+        
+          <tr>
+            <td class="line-number">
+              7
+            </td>
+            <td class="line unchanged">	./rent &lt;input.dat &gt;result.dat
+</td>
+          </tr>
+        
+          <tr>
+            <td class="line-number">
+              8
+            </td>
+            <td class="line unchanged">	diff expected.dat result.dat
+</td>
+          </tr>
+        
+          <tr>
+            <td class="line-number">
+              9
+            </td>
+            <td class="line unchanged">
+</td>
+          </tr>
+        
+          <tr>
+            <td class="line-number">
+              10
+            </td>
+            <td class="line unchanged"><span class="nl">clean</span><span class="o">:</span>
+</td>
+          </tr>
+        
+          <tr>
+            <td class="line-number">
+              11
+            </td>
+            <td class="line unchanged">	rm rent; rm <span class="k">*</span>.dat
+</td>
+          </tr>
+        
+          <tr>
+            <td class="line-number">
+              12
+            </td>
+            <td class="line unchanged">
+</td>
+          </tr>
+        
+        </table>
+      </div>
+    </div>
+  
+</div>
+<p>To make our test pass, we only need to write the simplest program that outputs a 1000 value.</p>
+<div class="step">
+  <div class="step-number">
+    3
+  </div>
+
+  
+    
+    <div class="diff">
+      <div class="diff-header">
+        <div class="diff-summary">
+          <p>Step 1: setting up the test harness</p>
+
+        </div>
+        <div class="diff-filename">
+          rent.c
+        </div>
+      </div>
+      <div class="diff-code">
+        <table>
+        
+          <tr>
+            <td class="line-number">
+              1
+            </td>
+            <td class="line unchanged"><span class="cp">#include &lt;stdio.h&gt;</span>
+</td>
+          </tr>
+        
+          <tr>
+            <td class="line-number">
+              2
+            </td>
+            <td class="line unchanged">
+</td>
+          </tr>
+        
+          <tr>
+            <td class="line-number">
+              3
+            </td>
+            <td class="line unchanged"><span class="kt">int</span> <span class="nf">main</span><span class="p">()</span> <span class="p">{</span>
+</td>
+          </tr>
+        
+          <tr>
+            <td class="line-number">
+              4
+            </td>
+            <td class="line unchanged">    <span class="n">printf</span><span class="p">(</span><span class="s">"1000</span><span class="se">\n</span><span class="s">"</span><span class="p">);</span>
+</td>
+          </tr>
+        
+          <tr>
+            <td class="line-number">
+              5
+            </td>
+            <td class="line unchanged">    <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+</td>
+          </tr>
+        
+          <tr>
+            <td class="line-number">
+              6
+            </td>
+            <td class="line unchanged"><span class="p">}</span>
+</td>
+          </tr>
+        
+        </table>
+      </div>
+    </div>
+  
+</div>
+<p>Let&rsquo;s add another case with a unique order, of a different value:</p>
+<div class="step">
+  <div class="step-number">
+    4
+  </div>
+
+  
+    
+    <div class="diff">
+      <div class="diff-header">
+        <div class="diff-summary">
+          <p>Step 2 : reading one order cases</p>
+
+        </div>
+        <div class="diff-filename">
+          tests.txt
+        </div>
+      </div>
+      <div class="diff-code">
+        <table>
+        
+          <tr>
+            <td class="line-number">
+              1
+            </td>
+            <td class="line unchanged">Test file for rent
+</td>
+          </tr>
+        
+          <tr>
+            <td class="line-number">
+              2
+            </td>
+            <td class="line unchanged">lines starting with &lt; will go in the input test file
+</td>
+          </tr>
+        
+          <tr>
+            <td class="line-number">
+              3
+            </td>
+            <td class="line unchanged">lines starting with &gt; will go in the expected result file
+</td>
+          </tr>
+        
+          <tr>
+            <td class="line-number">
+              4
+            </td>
+            <td class="line unchanged">
+</td>
+          </tr>
+        
+          <tr>
+            <td class="line-number">
+              5
+            </td>
+            <td class="line unchanged">number of cases
+</td>
+          </tr>
+        
+          <tr>
+            <td class="line-number">
+              6
+            </td>
+            <td class="line added">&lt; 2
+</td>
+          </tr>
+        
+          <tr>
+            <td class="line-number">
+              7
+            </td>
+            <td class="line unchanged">number of orders in the case
+</td>
+          </tr>
+        
+          <tr>
+            <td class="line-number">
+              8
+            </td>
+            <td class="line unchanged">&lt; 1
+</td>
+          </tr>
+        
+          <tr>
+            <td class="line-number">
+              9
+            </td>
+            <td class="line unchanged">&lt; 0 5 1000
+</td>
+          </tr>
+        
+          <tr>
+            <td class="line-number">
+              10
+            </td>
+            <td class="line unchanged">expected result
+</td>
+          </tr>
+        
+          <tr>
+            <td class="line-number">
+              11
+            </td>
+            <td class="line unchanged">&gt; 1000
+</td>
+          </tr>
+        
+          <tr>
+            <td class="line-number">
+              12
+            </td>
+            <td class="line unchanged">
+</td>
+          </tr>
+        
+          <tr>
+            <td class="line-number">
+              13
+            </td>
+            <td class="line added">&lt; 1
+</td>
+          </tr>
+        
+          <tr>
+            <td class="line-number">
+              14
+            </td>
+            <td class="line added">&lt; 0 5 4807
+</td>
+          </tr>
+        
+          <tr>
+            <td class="line-number">
+              15
+            </td>
+            <td class="line added">&gt; 4807
+</td>
+          </tr>
+        
+        </table>
+      </div>
+    </div>
+  
+</div>
+<div class="step">
+  <div class="step-number">
+    5
+  </div>
+
+  
+    
+    <div class="diff">
+      <div class="diff-header">
+        <div class="diff-summary">
+          <p>Step 2</p>
+
+        </div>
+        <div class="diff-filename">
+          rent.c
+        </div>
+      </div>
+      <div class="diff-code">
+        <table>
+        
+          <tr>
+            <td class="line-number">
+              1
+            </td>
+            <td class="line unchanged"><span class="cp">#include &lt;stdio.h&gt;</span>
+</td>
+          </tr>
+        
+          <tr>
+            <td class="line-number">
+              2
+            </td>
+            <td class="line added"><span class="cp">#define MAXLINE 80</span>
+</td>
+          </tr>
+        
+          <tr>
+            <td class="line-number">
+              3
+            </td>
+            <td class="line added">
+</td>
+          </tr>
+        
+          <tr>
+            <td class="line-number">
+              4
+            </td>
+            <td class="line added"><span class="kt">char</span> <span class="n">Line</span><span class="p">[</span><span class="n">MAXLINE</span><span class="p">];</span>
+</td>
+          </tr>
+        
+          <tr>
+            <td class="line-number">
+              5
+            </td>
+            <td class="line unchanged">
+</td>
+          </tr>
+        
+          <tr>
+            <td class="line-number">
+              6
+            </td>
+            <td class="line unchanged"><span class="kt">int</span> <span class="nf">main</span><span class="p">()</span> <span class="p">{</span>
+</td>
+          </tr>
+        
+          <tr>
+            <td class="line-number">
+              7
+            </td>
+            <td class="line added">    <span class="kt">int</span> <span class="n">max_cases</span><span class="p">;</span>
+</td>
+          </tr>
+        
+          <tr>
+            <td class="line-number">
+              8
+            </td>
+            <td class="line added">    <span class="n">fgets</span><span class="p">(</span><span class="n">Line</span><span class="p">,</span> <span class="n">MAXLINE</span><span class="p">,</span> <span class="n">stdin</span><span class="p">);</span>
+</td>
+          </tr>
+        
+          <tr>
+            <td class="line-number">
+              9
+            </td>
+            <td class="line added">    <span class="n">sscanf</span><span class="p">(</span><span class="n">Line</span><span class="p">,</span> <span class="s">"%d"</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">max_cases</span><span class="p">);</span>
+</td>
+          </tr>
+        
+          <tr>
+            <td class="line-number">
+              10
+            </td>
+            <td class="line added">
+</td>
+          </tr>
+        
+          <tr>
+            <td class="line-number">
+              11
+            </td>
+            <td class="line added">    <span class="k">for</span><span class="p">(</span><span class="kt">int</span> <span class="n">i</span><span class="o">=</span><span class="mi">0</span><span class="p">;</span> <span class="n">i</span><span class="o">&lt;</span><span class="n">max_cases</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
+</td>
+          </tr>
+        
+          <tr>
+            <td class="line-number">
+              12
+            </td>
+            <td class="line added">        <span class="cm">/* read the number of orders and ignore it */</span>
+</td>
+          </tr>
+        
+          <tr>
+            <td class="line-number">
+              13
+            </td>
+            <td class="line added">        <span class="n">fgets</span><span class="p">(</span><span class="n">Line</span><span class="p">,</span> <span class="n">MAXLINE</span><span class="p">,</span> <span class="n">stdin</span><span class="p">);</span> 
+</td>
+          </tr>
+        
+          <tr>
+            <td class="line-number">
+              14
+            </td>
+            <td class="line added">
+</td>
+          </tr>
+        
+          <tr>
+            <td class="line-number">
+              15
+            </td>
+            <td class="line added">        <span class="cm">/* read the unique order in the case */</span>
+</td>
+          </tr>
+        
+          <tr>
+            <td class="line-number">
+              16
+            </td>
+            <td class="line added">        <span class="n">fgets</span><span class="p">(</span><span class="n">Line</span><span class="p">,</span> <span class="n">MAXLINE</span><span class="p">,</span> <span class="n">stdin</span><span class="p">);</span>
+</td>
+          </tr>
+        
+          <tr>
+            <td class="line-number">
+              17
+            </td>
+            <td class="line added">
+</td>
+          </tr>
+        
+          <tr>
+            <td class="line-number">
+              18
+            </td>
+            <td class="line added">        <span class="kt">int</span> <span class="n">start_time</span><span class="p">,</span> <span class="n">duration</span><span class="p">,</span> <span class="n">value</span><span class="p">;</span>
+</td>
+          </tr>
+        
+          <tr>
+            <td class="line-number">
+              19
+            </td>
+            <td class="line added">        <span class="n">sscanf</span><span class="p">(</span><span class="n">Line</span><span class="p">,</span> <span class="s">"%d %d %d"</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">start_time</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">duration</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">value</span><span class="p">);</span>
+</td>
+          </tr>
+        
+          <tr>
+            <td class="line-number">
+              20
+            </td>
+            <td class="line added">        <span class="n">printf</span><span class="p">(</span><span class="s">"%d</span><span class="se">\n</span><span class="s">"</span><span class="p">,</span> <span class="n">value</span><span class="p">);</span>
+</td>
+          </tr>
+        
+          <tr>
+            <td class="line-number">
+              21
+            </td>
+            <td class="line added">    <span class="p">}</span>
+</td>
+          </tr>
+        
+          <tr>
+            <td class="line-number">
+              22
+            </td>
+            <td class="line unchanged">    <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+</td>
+          </tr>
+        
+          <tr>
+            <td class="line-number">
+              23
+            </td>
+            <td class="line unchanged"><span class="p">}</span>
+</td>
+          </tr>
+        
+        </table>
+      </div>
+    </div>
+  
+</div>
+
+    </div>
+  </body>
+</html>
