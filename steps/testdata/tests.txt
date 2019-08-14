@@ -1,0 +1,7 @@
+Tests for rent.c
+# cases
+< 1
+A single order should result in that order price
+< 1
+< 0 5 100
+> 100
