@@ -17,11 +17,15 @@ int main() {
 
     for(int i=0; i<max_cases; i++) {
         int start_time, duration, price;
-        int max_orders = get_int(); /* we don't use the # of orders for now */
-        assert(max_orders==1);
-        fgets(Line, MAXLINE, stdin);
-        sscanf(Line, "%d %d %d", &start_time, &duration, &price);
-        printf("%d\n", price);
+        int max_orders = get_int(); 
+        int total = 0;
+        for(int j=0; j<max_orders; j++) {
+            fgets(Line, MAXLINE, stdin);
+            sscanf(Line, "%d %d %d", 
+                   &start_time, &duration, &price);
+            total += price;
+        }   
+        printf("%d\n", total);
     }   
     return 0;
 }

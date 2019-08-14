@@ -1,10 +1,16 @@
 Tests for rent.c
 # cases
-< 2
+< 3
 A single order should result in that order price
 < 1
 < 0 5 100
 > 100
+Another single order should result in that order price
 < 1
 < 0 5 42
 > 42
+Two compatible orders should result in the sum of prices
+< 2
+< 0 5 42
+< 5 9 17
+> 59
