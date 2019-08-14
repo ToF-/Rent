@@ -35,17 +35,19 @@ int get_orders() {
     }   
     return max_orders;
 }
+
+int max(int a, int b) {
+    return a > b ? a : b;
+}
+
 int profit() {
     int max_orders = get_orders();
     if (max_orders == 1)
         return Orders[0].price;
     if (Orders[0].start_time + Orders[0].duration 
-     <= Orders[1].start_time)
+        <= Orders[1].start_time)
         return Orders[0].price + Orders[1].price;
-    if(Orders[0].price > Orders[1].price) 
-        return Orders[0].price;
-    else
-        return Orders[1].price;
+    return max(Orders[0].price, Orders[1].price) ;
 }
 
 int main() {
