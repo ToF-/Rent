@@ -10,3 +10,7 @@ test: rent tests.txt
 clean:
 	rm rent; rm *.dat
 
+large: rent.c
+	./rent <largedata.txt >result.dat
+	diff largeresult.txt result.dat
+
