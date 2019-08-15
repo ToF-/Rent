@@ -26,32 +26,38 @@ void get_order(struct order *order) {
             &order->value);
 }
 
+int get_orders() {
+    int max_orders = get_int();
+    for(int j=0; j<max_orders; j++) {
+        get_order(&Orders[j]);
+    }
+    return max_orders;
+}
+
+int value(int max_orders) {
+    if(max_orders == 1) 
+        return Orders[0].value;
+    int total = 0;
+    if (Orders[0].start_time + Orders[0].duration
+            > Orders[1].start_time) {
+
+        if (Orders[0].value > Orders[1].value) 
+            total = Orders[0].value;
+        else
+            total = Orders[1].value;
+    }
+    else {
+        total = Orders[0].value + Orders[1].value;
+    }
+    return total;
+}
+
 int main() {
     int max_cases = get_int();
 
     for(int i=0; i<max_cases; i++) {
-        int max_orders = get_int();
-
-        int total = 0;
-        for(int j=0; j<max_orders; j++) {
-            get_order(&Orders[j]);
-        }
-        if(max_orders == 1) {
-            total = Orders[0].value;
-        } else {
-            if (Orders[0].start_time + Orders[0].duration
-                > Orders[1].start_time) {
-
-                if (Orders[0].value > Orders[1].value) 
-                    total = Orders[0].value;
-                else
-                    total = Orders[1].value;
-            }
-            else {
-                total = Orders[0].value + Orders[1].value;
-            }
-        }
-        printf("%d\n", total);
+        int max_orders = get_orders();
+        printf("%d\n", value(max_orders));
     }
     return 0;
 }
