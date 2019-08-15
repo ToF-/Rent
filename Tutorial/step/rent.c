@@ -41,6 +41,10 @@ int next_compatible(int i, int max_orders) {
             return j;
     return max_orders;
 }
+
+int max(int a, int b) {
+    return a > b ? a : b;
+}
 int value(int max_orders) {
     if(max_orders == 1) 
         return Orders[0].value;
@@ -50,10 +54,7 @@ int value(int max_orders) {
         int value_compatible = Orders[i].value +
             (k < max_orders ? Orders[k].value : 0);
         int value_next = Orders[i+1].value;
-        if (value_compatible > value_next) 
-            Orders[i].value = value_compatible;
-        else 
-            Orders[i].value = value_next;
+        Orders[i].value = max(value_compatible, value_next);
     }
     return Orders[0].value;
 }
