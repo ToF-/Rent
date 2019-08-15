@@ -52,10 +52,23 @@ void sort_orders(int max_orders) {
 
 int next_compatible(int i, int max_orders) {
     int end_time = Orders[i].start_time + Orders[i].duration;
-    for(int j=i+1; j<max_orders; j++)
-        if(Orders[j].start_time >= end_time)
-            return j;
-    return max_orders;
+    int low  = i+1;
+    int high = max_orders;
+    int middle;
+    int result;
+    while(low <= high) {
+        middle = low + ((high - low) / 2);
+        if (Orders[middle].start_time < end_time) {
+            low = middle + 1;
+            if(low == max_orders)
+                return max_orders;
+        }
+        else {
+            result = middle;
+            high = middle - 1;
+        }
+    }
+    return result;
 }
 
 int max(int a, int b) {
