@@ -1,5 +1,6 @@
 #include <stdio.h>
 #define MAXLINE 80
+#define MAXORDER 10000
 
 char Line[MAXLINE];
 
@@ -7,7 +8,7 @@ struct order {
     int start_time;
     int duration;
     int value;
-};
+} Orders[MAXORDER];
 
 int get_int() {
     int result;
@@ -33,9 +34,22 @@ int main() {
 
         int total = 0;
         for(int j=0; j<max_orders; j++) {
-            struct order order;
-            get_order(&order);
-            total += order.value;
+            get_order(&Orders[j]);
+        }
+        if(max_orders == 1) {
+            total = Orders[0].value;
+        } else {
+            if (Orders[0].start_time + Orders[0].duration
+                > Orders[1].start_time) {
+
+                if (Orders[0].value > Orders[1].value) 
+                    total = Orders[0].value;
+                else
+                    total = Orders[1].value;
+            }
+            else {
+                total = Orders[0].value + Orders[1].value;
+            }
         }
         printf("%d\n", total);
     }
