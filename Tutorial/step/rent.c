@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #define MAXLINE 80
 #define MAXORDER 10000
 
@@ -34,6 +35,21 @@ int get_orders() {
     return max_orders;
 }
 
+int compare_orders(const void *a, const void *b) {
+    struct order *pa = (struct order *)a;
+    struct order *pb = (struct order *)b;
+    if (pa->start_time < pb->start_time)
+        return -1;
+    else if (pa->start_time > pb->start_time)
+        return 1;
+    else 
+        return 0;
+}
+
+void sort_orders(int max_orders) {
+    qsort(Orders, max_orders, sizeof(struct order), compare_orders);
+}
+
 int next_compatible(int i, int max_orders) {
     int end_time = Orders[i].start_time + Orders[i].duration;
     for(int j=i+1; j<max_orders; j++)
@@ -64,6 +80,7 @@ int main() {
 
     for(int i=0; i<max_cases; i++) {
         int max_orders = get_orders();
+        sort_orders(max_orders);
         printf("%d\n", value(max_orders));
     }
     return 0;
