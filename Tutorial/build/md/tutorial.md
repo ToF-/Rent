@@ -108,4 +108,62 @@ Let's add another case with a unique order, of a different value:
  }
 ```
 
+## 6. Step 3 adding the value of compatible orders
+
+```diff
+ // rent.c
+ #include <stdio.h>
+ #define MAXLINE 80
+ 
+ char Line[MAXLINE];
+ 
+ int main() {
+     int max_cases;
+     fgets(Line, MAXLINE, stdin);
+     sscanf(Line, "%d", &max_cases);
+ 
+     for(int i=0; i<max_cases; i++) {
+         /* read the number of orders and ignore it */
+         fgets(Line, MAXLINE, stdin); 
++        int max_orders;
++        sscanf(Line, "%d", &max_orders);
+ 
++        int total = 0;
++        for(int j=0; j<max_orders; j++) {
+             int start_time, duration, value;
+ 
++            fgets(Line, MAXLINE, stdin);
+             sscanf(Line, "%d %d %d", &start_time, &duration, &value);
++            total += value;
++        }
++        printf("%d\n", total);
+     }
+     return 0;
+ }
+```
+```diff
+ // tests.txt
+ Test file for rent
+ lines starting with < will go in the input test file
+ lines starting with > will go in the expected result file
+ 
+ number of cases
++< 3
+ number of orders in the case
+ < 1
+ < 0 5 1000
+ expected result
+ > 1000
+ 
+ < 1
+ < 0 5 4807
+ > 4807
+ 
++two compatible orders result in sum of value
++< 2
++< 0 5 1000
++< 5 9 800
++> 1800
+```
+
 

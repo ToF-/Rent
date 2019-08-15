@@ -11,13 +11,18 @@ int main() {
     for(int i=0; i<max_cases; i++) {
         /* read the number of orders and ignore it */
         fgets(Line, MAXLINE, stdin); 
+        int max_orders;
+        sscanf(Line, "%d", &max_orders);
 
-        /* read the unique order in the case */
-        fgets(Line, MAXLINE, stdin);
+        int total = 0;
+        for(int j=0; j<max_orders; j++) {
+            int start_time, duration, value;
 
-        int start_time, duration, value;
-        sscanf(Line, "%d %d %d", &start_time, &duration, &value);
-        printf("%d\n", value);
+            fgets(Line, MAXLINE, stdin);
+            sscanf(Line, "%d %d %d", &start_time, &duration, &value);
+            total += value;
+        }
+        printf("%d\n", total);
     }
     return 0;
 }
