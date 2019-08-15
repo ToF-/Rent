@@ -3,7 +3,7 @@ lines starting with < will go in the input test file
 lines starting with > will go in the expected result file
 
 number of cases
-< 4
+< 5
 number of orders in the case
 < 1
 < 0 5 1000
@@ -25,3 +25,11 @@ two incompatible orders result in the max value
 < 0 5 1000
 < 3 7 1400
 > 1400
+
+three or more incompatible orders result in the max value
+< 4
+< 0 5 1000
+< 3 7 1400
+< 5 9 700
+< 6 9 800
+> 1800

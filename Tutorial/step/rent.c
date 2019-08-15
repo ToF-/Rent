@@ -34,22 +34,28 @@ int get_orders() {
     return max_orders;
 }
 
+int next_compatible(int i, int max_orders) {
+    int end_time = Orders[i].start_time + Orders[i].duration;
+    for(int j=i+1; j<max_orders; j++)
+        if(Orders[j].start_time >= end_time)
+            return j;
+    return max_orders;
+}
 int value(int max_orders) {
     if(max_orders == 1) 
         return Orders[0].value;
     int total = 0;
-    if (Orders[0].start_time + Orders[0].duration
-            > Orders[1].start_time) {
-
-        if (Orders[0].value > Orders[1].value) 
-            total = Orders[0].value;
-        else
-            total = Orders[1].value;
+    for(int i=max_orders-2; i>=0; i--) {
+        int k = next_compatible(i, max_orders);
+        int value_compatible = Orders[i].value +
+            (k < max_orders ? Orders[k].value : 0);
+        int value_next = Orders[i+1].value;
+        if (value_compatible > value_next) 
+            Orders[i].value = value_compatible;
+        else 
+            Orders[i].value = value_next;
     }
-    else {
-        total = Orders[0].value + Orders[1].value;
-    }
-    return total;
+    return Orders[0].value;
 }
 
 int main() {
