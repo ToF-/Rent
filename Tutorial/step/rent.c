@@ -1,7 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #define MAXLINE 80
-#define MAXORDER 10000
+#define MAXORDER 10001
+#define MAXSTARTTIME 2000000
 
 char Line[MAXLINE];
 
@@ -32,7 +33,12 @@ int get_orders() {
     for(int j=0; j<max_orders; j++) {
         get_order(&Orders[j]);
     }
-    return max_orders;
+    /* adding a sentinel to simplify search of compatible order */
+    Orders[max_orders].start_time = MAXSTARTTIME;
+    Orders[max_orders].duration   = 0;
+    Orders[max_orders].value      = 0;
+
+    return max_orders+1;
 }
 
 int compare_orders(const void *a, const void *b) {
@@ -60,8 +66,6 @@ int next_compatible(int i, int max_orders) {
         middle = low + ((high - low) / 2);
         if (Orders[middle].start_time < end_time) {
             low = middle + 1;
-            if(low == max_orders)
-                return max_orders;
         }
         else {
             result = middle;
@@ -74,14 +78,12 @@ int next_compatible(int i, int max_orders) {
 int max(int a, int b) {
     return a > b ? a : b;
 }
+
 int value(int max_orders) {
-    if(max_orders == 1) 
-        return Orders[0].value;
     int total = 0;
     for(int i=max_orders-2; i>=0; i--) {
         int k = next_compatible(i, max_orders);
-        int value_compatible = Orders[i].value +
-            (k < max_orders ? Orders[k].value : 0);
+        int value_compatible = Orders[i].value + Orders[k].value;
         int value_next = Orders[i+1].value;
         Orders[i].value = max(value_compatible, value_next);
     }
