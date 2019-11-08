@@ -1,5 +1,5 @@
-test: test_lags.h lags.cpp
+test: test_rent.h rent.cpp
 	clear
-	cxxtestgen --error-printer -o runner.cpp test_lags.h
-	g++ -o runner -I$CXXTEST runner.cpp	lags.cpp
+	cxxtestgen --error-printer -o runner.cpp test_rent.h
+	g++ -o runner -I$CXXTEST runner.cpp	rent.cpp
 	./runner
