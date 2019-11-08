@@ -1,4 +1,4 @@
-// lags.h
+// rent.h   
 
 class Scheduler {
     public:

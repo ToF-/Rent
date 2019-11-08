@@ -1,7 +1,7 @@
-// test_lags.h
+// test_rent.h
 
 #include <cxxtest/TestSuite.h>
-#include "lags.h"
+#include "rent.h"
 
 class TestLags : public CxxTest::TestSuite {
 public:
