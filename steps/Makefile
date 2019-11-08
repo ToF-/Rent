@@ -9,3 +9,8 @@ test : rent testdata/tests.txt
 
 clean : 
 	rm bin/rent; rm *.dat
+
+large : rent
+	bin/rent <testdata/large.dat >result.dat
+	diff testdata/expectedlarge.dat result.dat
+	
