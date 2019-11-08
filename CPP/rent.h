@@ -18,6 +18,6 @@ class Scheduler {
     Scheduler();
     private:
     int max_orders;
-    Order next_compatible_order(int k, int time);
+    Order next_compatible_order(int k, int end_time);
     Order orders[MAX_ORDERS];
 };

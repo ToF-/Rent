@@ -3,15 +3,26 @@
 #include "assert.h"
 #include "stdio.h"
 
+#undef TEST 
 Scheduler::Scheduler() {
     max_orders = 0;
 }
 
-Order Scheduler::next_compatible_order(int k,int time) {
-    for(int i=k+1; i<max_orders; i++)
-        if (orders[i].start_time >= time)
-            return orders[i];
-    return orders[max_orders];
+Order Scheduler::next_compatible_order(int k,int end_time) {
+    int l = k+1;
+    int h = max_orders;
+    int m;
+    int result = -1;
+    while(l <= h) {
+        m = l + (h - l) / 2;
+        if(orders[m].start_time < end_time)
+            l = m + 1;
+        else {
+            result = m;
+            h = m - 1;
+        }
+    }
+    return orders[result];
 }
 
 int compareOrders (const void * a, const void * b)
@@ -44,4 +55,23 @@ void Scheduler::add_order(int start, int duration, int amount) {
     orders[max_orders].amount     = amount;
     max_orders++;
 }
+#ifndef TEST
+#include <iostream>
+using namespace std;
 
+int main() {
+    int max_cases;
+    cin >> max_cases;
+    for(int i=0; i<max_cases; i++) {
+        int max_orders;
+        cin >> max_orders;
+        Scheduler scheduler;
+        for(int j=0; j<max_orders; j++) {
+            int start_time, duration, amount;
+            cin >> start_time >> duration >> amount;
+            scheduler.add_order(start_time, duration, amount);
+        }
+        cout << scheduler.get_revenue() << endl;
+    }
+}
+#endif
