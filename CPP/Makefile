@@ -4,6 +4,6 @@ test: test_rent.h rent.cpp
 	g++ -o runner -I$CXXTEST runner.cpp	rent.cpp
 	./runner
 
-main: rent.cpp
+spoj: spoj.cpp rent.cpp
 	clear
-	g++ -o rent rent.cpp
+	g++ -o rent spoj.cpp 
