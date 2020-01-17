@@ -36,19 +36,30 @@ int compareOrders (const void * a, const void * b)
     return orderA.start_time - orderB.start_time;
 }
 
-int Scheduler::get_revenue() {
-    
+void Scheduler::set_limit() {
     orders[max_orders].start_time = MAX_START_TIME;
     orders[max_orders].duration  = 0;
     orders[max_orders].amount    = 0;
+ }
+
+void Scheduler::sort_orders() {
     qsort (orders, max_orders, sizeof(Order), compareOrders);
+}
+
+void Sheduler::compute_revenue() {
     for(int i = max_orders-1; i>=0; i--) {
-        Order &current    = orders[i];
+        Order current    = orders[i];
         Order next       = orders[i+1];
         Order compatible = next_compatible_order(i, current);
         int comp_amount = current.amount + compatible.amount;
         current.amount = next.amount > comp_amount ? next.amount : comp_amount;
     }
+}
+
+int Scheduler::get_revenue() {
+    set_limit();
+    sort_orders();
+    compute_revenue();
     return orders[0].amount;
 }
 
