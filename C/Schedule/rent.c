@@ -17,10 +17,6 @@ char *get_line(char *line) {
     return line;
 }
 
-struct check_profit {
-    int time_point;
-};
-
 struct order{
     int start_time;
     int duration;
@@ -96,10 +92,10 @@ int find_time_point(int time_point, int max_time_points) {
         m = l + (h - l) / 2;
         if (Time_points[m] < time_point) 
             l = m + 1;
-        else if (Time_points[m] == time_point)
-            return m;
-        else 
+        else if (Time_points[m] > time_point)
             h = m - 1;
+        else 
+            return m;
     }
     return -1;
 }
