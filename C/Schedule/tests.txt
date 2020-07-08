@@ -1,0 +1,31 @@
+Tests for rent.c
+# cases
+< 5
+A single order should result in that order price
+< 1
+< 0 5 100
+> 100
+A different order price should make a different profit
+< 1
+< 0 5 4807
+> 4807
+With several incompatible orders profit should equal the best price
+< 3
+< 0 5 100
+< 3 7 120
+< 4 3  90
+> 120
+Given ordered orders in a small range on distinct times, profit should be optimal
+< 4
+< 0 5 100
+< 3 7 140
+< 5 9 80
+< 6 9 70
+> 180
+Given unordered orders in a small range, profit should be optimal
+< 4
+< 6 9 70
+< 5 9 85
+< 0 5 100
+< 3 7 140
+> 185
