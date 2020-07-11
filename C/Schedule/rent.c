@@ -7,9 +7,6 @@
 #define MAXTIMEPOINT 20000
 #define MAXEVENT 30000
 
-#define CHECK_VALUE 0 
-#define SCHEDULE_RENT 1
-
 char Line[MAXLINE];
 
 char *get_line(char *line) {
@@ -107,13 +104,14 @@ int schedule_events(int max_orders, int max_time_points) {
         int end   = Orders[i].start_time + Orders[i].duration;
         assert(end > 0);
         Events[max_event].start_time = start;
-        Events[max_event].type = CHECK_VALUE;
+        Events[max_event].end_time =   start;
+        Events[max_event].price = 0;
         max_event++;
         Events[max_event].start_time = end;
-        Events[max_event].type = CHECK_VALUE;
+        Events[max_event].end_time =   end;
+        Events[max_event].price = 0;
         max_event++;
         Events[max_event].start_time = start;
-        Events[max_event].type = SCHEDULE_RENT;
         Events[max_event].end_time = end;
         Events[max_event].price = Orders[i].price;
         max_event++;
@@ -143,11 +141,9 @@ int calc_value(int max_events, int max_time_points) {
         int start = find_time_point(Events[i].start_time, max_time_points);
         Value[start] = max(Value[start],value);
         value = max(Value[start], value);
-        if (Events[i].type == SCHEDULE_RENT) {
-            int end   = find_time_point(Events[i].end_time, max_time_points);
-            int price = Events[i].price;
-            Value[end] = max(Value[end], value + price);
-        }
+        int end   = find_time_point(Events[i].end_time, max_time_points);
+        int price = Events[i].price;
+        Value[end] = max(Value[end], value + price);
     }
     return value;
 }
