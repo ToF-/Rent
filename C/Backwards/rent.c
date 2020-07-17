@@ -1,14 +1,16 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <assert.h>
-#define MAXLINE 4096
+#define MAXLINE 40
 #define MAXORDER 10001
+#define MAXTIME 2000000
 
 struct order{
     int start_time;
     int end_time;
     int value;
 } Orders[MAXORDER];
+
+int Max_order;
 
 char Line[MAXLINE];
 
@@ -45,39 +47,33 @@ int next_compatible(int j, int max_orders) {
     return result;
 }
 
-int next_compatible_slow(int j, int max_orders) {
-    int end_time = Orders[j].end_time;
-    for (int k=j+1; k<=max_orders; k++)
-        if(Orders[k].start_time >= end_time)
-            return k;
-    return max_orders;
-}
-int calc_value(int max_orders) {
-    for(int j=max_orders-2; j>=0; j--) {
-        int k = next_compatible(j,max_orders);
+int calc_value() {
+    for(int j = Max_order-2; j >= 0; j--) {
+        int k = next_compatible(j, Max_order);
         Orders[j].value = max(Orders[j+1].value, Orders[j].value + Orders[k].value);
     } 
     return Orders[0].value;
 }
 
-int get_orders() {
-    int max_orders = get_int(Line);
-    for(int j=0; j<max_orders; j++) {
-        int s,d,v;
+void get_orders() {
+    int max_order = get_int(Line);
+    for(int j = 0; j < max_order; j++) {
+        int start_time, duration, value;
         get_line(Line);
-        sscanf(Line, "%d %d %d", &s, &d, &v);
+        sscanf(Line, "%d %d %d", &start_time, &duration, &value);
 
-        Orders[j].start_time = s;
-        Orders[j].end_time = s+d;
-        Orders[j].value = v; 
+        Orders[j].start_time = start_time;
+        Orders[j].end_time   = start_time+duration;
+        Orders[j].value      = value; 
     }
-    return max_orders;
+    Max_order = max_order;
 }
 
-void add_sentinel(int max_orders) {
-    Orders[max_orders-1].start_time = 2000000;
-    Orders[max_orders-1].end_time   = 2000000;
-    Orders[max_orders-1].value      = 0;
+void add_sentinel() {
+    Orders[Max_order].start_time = MAXTIME;
+    Orders[Max_order].end_time   = MAXTIME;
+    Orders[Max_order].value      = 0;
+    Max_order++;
 }
 
 int compare_orders(const void *a, const void *b) {
@@ -90,16 +86,16 @@ int compare_orders(const void *a, const void *b) {
     else 
         return (pa->end_time - pb->end_time);
 }
-void sort_orders(int max_orders) {
-    qsort(Orders, max_orders, sizeof(struct order), compare_orders);
+void sort_orders() {
+    qsort(Orders, Max_order, sizeof(struct order), compare_orders);
 }
 int main() {
     int max_cases = get_int(Line);
     for(int i=0; i<max_cases; i++) {
-        int max_orders = get_orders() + 1;
-        add_sentinel(max_orders);
-        sort_orders(max_orders);
-        printf("%d\n", calc_value(max_orders));
+        get_orders();
+        add_sentinel();
+        sort_orders();
+        printf("%d\n", calc_value());
     }
     return 0;
 }
