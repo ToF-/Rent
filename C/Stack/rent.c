@@ -1,16 +1,10 @@
-
 #include <stdio.h>
 #include <stdlib.h>
-#include <assert.h>
 
-#define MAXLINE 4096
+#define MAXLINE 40
 #define MAXORDER 10001
 #define MAXSTACK 60001
 #define NIL (-1)
-
-
-
-
 
 char Line[MAXLINE];
 
@@ -26,10 +20,12 @@ struct order {
     int value;
 }Orders[MAXORDER];
 
+int Max_order;
+
 int Stack[MAXSTACK];
 int StackPointer = 0;
+
 int pop() {
-    assert(StackPointer >= 0);
     StackPointer--;
     return Stack[StackPointer];
 }
@@ -49,26 +45,27 @@ int get_int(char *line) {
     return result;
 }
 
-int get_orders() {
-    int max_orders = get_int(Line);
-    for(int j=0; j<max_orders; j++) {
-        int s,d,p;
+void get_orders() {
+    int max_order = get_int(Line);
+    for(int j = 0; j < max_order; j++) {
+        int start_time, duration, price;
         get_line(Line);
-        sscanf(Line, "%d %d %d", &s, &d, &p);
+        sscanf(Line, "%d %d %d", &start_time, &duration, &price);
 
-        Orders[j].start_time = s;
-        Orders[j].duration = d;
-        Orders[j].price = p;
-        Orders[j].value = NIL;
+        Orders[j].start_time = start_time;
+        Orders[j].duration   = duration;
+        Orders[j].price      = price;
+        Orders[j].value      = NIL;
     }
-    return max_orders;
+    Max_order = max_order;
 }
 
-void add_sentinel(int max_orders) {
-    Orders[max_orders-1].start_time = 2000000;
-    Orders[max_orders-1].duration   = 0;
-    Orders[max_orders-1].price      = 0;
-    Orders[max_orders-1].value      = 0;
+void add_sentinel() {
+    Orders[Max_order].start_time = 2000000;
+    Orders[Max_order].duration   = 0;
+    Orders[Max_order].price      = 0;
+    Orders[Max_order].value      = 0;
+    Max_order++;
 }
 
 int compare_orders(const void *a, const void *b) {
@@ -81,8 +78,8 @@ int compare_orders(const void *a, const void *b) {
     else 
         return (pa->duration - pb->duration);
 }
-void sort_orders(int max_orders) {
-    qsort(Orders, max_orders, sizeof(struct order), compare_orders);
+void sort_orders() {
+    qsort(Orders, Max_order, sizeof(struct order), compare_orders);
 }
 
 int next_compatible(int j, int max_orders) {
@@ -102,23 +99,23 @@ int next_compatible(int j, int max_orders) {
     }
     return result;
 }
-int calc_value(int max_orders) {
+int calc_value() {
     push(0);
     push(NIL);
     while( StackPointer>0 ) {
         int n = pop();
         int i = pop();
-        int j = (i+1) % max_orders;
+        int j = (i+1) % Max_order;
         if (n == NIL) {
-            n = next_compatible(i, max_orders);
+            n = next_compatible(i, Max_order);
             push(i);
             push(n);
 
-            if (j < max_orders-1 && Orders[j].value == NIL) {
+            if (j < Max_order-1 && Orders[j].value == NIL) {
                 push(j);
                 push(NIL);
             }
-            if (n < max_orders-1 && Orders[n].value == NIL) {
+            if (n < Max_order-1 && Orders[n].value == NIL) {
                 push(n);
                 push(NIL);
             }
@@ -136,12 +133,12 @@ int calc_value(int max_orders) {
 int main() {
     int max_cases = get_int(Line);
     for(int i=0; i<max_cases; i++) {
-        int max_orders = get_orders() + 1;
-        add_sentinel(max_orders);
-        sort_orders(max_orders);
+        get_orders();
+        add_sentinel();
+        sort_orders();
         StackPointer = 0;
          
-        printf("%d\n", calc_value(max_orders));
+        printf("%d\n", calc_value());
     }
     return 0;
 }
