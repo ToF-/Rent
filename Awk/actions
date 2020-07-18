@@ -8,7 +8,7 @@ BEGIN { case = -2 }
                  printf "%02d %07d BEGIN\n", case, 0
              }
          } 
-/[0-9]+ [0-9]+ [0-9]+/ { printf "%02d %07d CASH\n%02d %07d RENT %07d %07d\n", case, $1+$2, case, $1, $2, $3 }
+/[0-9]+ [0-9]+ [0-9]+/ { printf "%02d %07d CASH\n%02d %07d RENT %07d %07d\n%02d %07d CASH\n", case, $1+$2, case, $1, $2, $3, case, $1 }
 
 
 
