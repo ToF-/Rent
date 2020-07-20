@@ -19,6 +19,9 @@ DECIMAL
 : ORDER@ ( a -- p,sd )
     2@ ;
 
+: ORDER-POSITION ( p,sd -- sd )
+    NIP ;
+
 : ADD-DURATION ( p,sd -- p,s+d0 )
     NIP
     DUP DURATION-MASK AND 
@@ -30,10 +33,49 @@ DECIMAL
     ADD-DURATION 
     D>= ;
 
-: ORDER-EXCHANGE ( a,a' -- exchange order contents )
-    DUP ORDER@ >R >R  \ a,a' -- {sd',p'}
-    OVER ORDER@       \ a,a',p,sd
-    ROT ORDER!        \ a -- a' <- p,sd
-    R> R>             \ a,p',sd'
-    ROT ORDER! ;      \ a <- p',sd'
+: ORDER@-ARRAY ( a,p,l -- )
+    0 DO
+        OVER OVER !
+        CELL+ SWAP CELL+ CELL+ SWAP
+    LOOP 2DROP ;
 
+: MID ( l,h -- m )
+    OVER - 2/ ALIGNED + ;
+
+: EXCH ( l,h -- )
+    DUP @ >R
+    OVER @ SWAP !
+    R> SWAP ! ;
+
+: CELL- 
+    8 - ;
+
+: PARTITION ( l,h -- l',h',h'',l'' )
+    2DUP MID @ ORDER@ ORDER-POSITION >R
+    2DUP BEGIN
+        SWAP BEGIN                       \ l,h,h,l 
+            DUP @ ORDER@ ORDER-POSITION R@ < WHILE CELL+ 
+        REPEAT \ l,h,h,l'  | [l..l'[ < P
+        SWAP BEGIN                       \ l,h,l',h
+            R@ OVER @ ORDER@ ORDER-POSITION < WHILE CELL- 
+        REPEAT
+        2DUP <= IF 2DUP EXCH >R CELL+ R> CELL- THEN
+        2DUP > UNTIL
+    R> DROP ;
+
+: QSORT ( l,h -- )
+    PARTITION SWAP ROT
+    2DUP < IF RECURSE ELSE 2DROP THEN
+    2DUP < IF RECURSE ELSE 2DROP THEN ;
+
+: SORT ( a,l -- )
+    DUP 2 >= IF 1- CELLS OVER + QSORT
+             ELSE 2DROP THEN ;
+
+: PRINT-ORDER ( p,sd -- )
+    2DUP START-TIME 10 .R
+    2DUP DURATION   10 .R
+    PRICE           10 .R ;
+
+: PRINT-ORDER-ARRAY ( a,l )
+    0 DO DUP I CELLS + @ ORDER@ PRINT-ORDER CR LOOP DROP ;

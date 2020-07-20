@@ -37,19 +37,52 @@ T{ ." an order is compatible with another if its start time >= the other end-tim
     0 5  10 MAKE-ORDER 
     COMPATIBLE? 0 ?S }T
 
-2VARIABLE BAR
+CREATE SOME-ORDERS 
+5  9 7  MAKE-ORDER 2,
+0  5 10 MAKE-ORDER 2,
+6  8 8  MAKE-ORDER 2,
+3 10 14 MAKE-ORDER 2,
 
-T{ ." two order variables can be exchanged " CR
-    0  5 10 MAKE-ORDER FOO ORDER!
-    3 10 14 MAKE-ORDER BAR ORDER!
-    FOO BAR ORDER-EXCHANGE
-    FOO ORDER@
-    2DUP START-TIME 3 ?S
-    2DUP DURATION  10 ?S
-    PRICE          14 ?S
-    BAR ORDER@
-    2DUP START-TIME 0 ?S
-    2DUP DURATION   5 ?S
-    PRICE          10 ?S }T
+CREATE SOME-POINTERS 4 CELLS ALLOT
+SOME-ORDERS SOME-POINTERS 4 ORDER@-ARRAY
 
+T{ ." orders can be accessed through an array of order pointers " CR
+    SOME-POINTERS 1 CELLS + @ ORDER@ START-TIME 0 ?S
+    SOME-POINTERS 3 CELLS + @ ORDER@ PRICE     14 ?S
+    SOME-POINTERS 0 CELLS + @ ORDER@ DURATION   9 ?S
+    SOME-POINTERS 2 CELLS + @ ORDER@ START-TIME 6 ?S }T
+
+T{ ." MID gives the middle adress between two adresses " CR
+    SOME-ORDERS DUP 2 CELLS + MID
+    SOME-ORDERS 1 CELLS + ?S
+    SOME-ORDERS DUP CELL+ MID
+    SOME-ORDERS CELL+ ?S
+    SOME-ORDERS DUP 3 CELLS + MID
+    SOME-ORDERS 2 CELLS + ?S
+}T
+
+T{ ." EXCH exchanges the content of two addresses " CR
+    SOME-POINTERS SOME-POINTERS 2 CELLS + EXCH
+    SOME-POINTERS 0 CELLS + @ ORDER@ DURATION   8 ?S
+    SOME-POINTERS 2 CELLS + @ ORDER@ START-TIME 5 ?S }T
+
+T{ ." PARTITION find partitions around pivot " CR
+    SOME-POINTERS 3 CELLS OVER + PARTITION
+
+    SOME-POINTERS 1 CELLS + ?S
+    SOME-POINTERS 3 CELLS + ?S
+    SOME-POINTERS 3 CELLS + ?S
+    SOME-POINTERS ?S
+    }T
+
+T{ ." SORT sort the order pointer array " CR
+    SOME-POINTERS 4 SORT
+    SOME-POINTERS 0 CELLS + @ ORDER@ START-TIME 0 ?S
+    SOME-POINTERS 1 CELLS + @ ORDER@ PRICE     14 ?S
+    SOME-POINTERS 2 CELLS + @ ORDER@ DURATION   9 ?S
+    SOME-POINTERS 3 CELLS + @ ORDER@ START-TIME 6 ?S }T
+
+SOME-POINTERS 4 PRINT-ORDER-ARRAY 
 BYE
+
+
