@@ -1,51 +1,55 @@
-\ Tests.fs  Tests for Rent
+REQUIRE ffl/tst.fs
+REQUIRE Rent.fs
 
-REQUIRE ffl/tst.fs  \  Forth Foundation Library  Testing definitions
-REQUIRE Rent.fs     
+T{ ." an order has a start time, duration and price " CR
+    1000 42 4807 MAKE-ORDER
+    2DUP START-TIME 1000 ?S
+    2DUP DURATION     42 ?S
+    PRICE           4807 ?S }T
 
-T{
+2VARIABLE FOO
 
-." an order can be encoded and decoded to and from a cell" CR
-    0 5 100 ENCODE-ORDER
-    3 7 140 ENCODE-ORDER
-    SWAP
-    DECODE-ORDER 100 ?S 5 ?S 0 ?S
-    DECODE-ORDER 140 ?S 7 ?S 3 ?S
+T{ ." an order can be stored and retrieved " CR
+    17 23 42 MAKE-ORDER 
+    FOO ORDER!
+    FOO ORDER@
+    2DUP PRICE    42 ?S
+    2DUP DURATION 23 ?S
+    START-TIME    17 ?S }T
 
-." encoded orders can be compared on start time" CR
-    5 0 0   ENCODE-ORDER
-    0 5 100 ENCODE-ORDER 
-    > ?TRUE
-    3 0 0   ENCODE-ORDER
-    3 7 140 ENCODE-ORDER
-    <= ?TRUE
+T{ ." an order can add its duration, creating a new order " CR
+    42 17 10 MAKE-ORDER
+    ADD-DURATION
+    2DUP START-TIME 59 ?S
+    2DUP DURATION    0 ?S
+    PRICE            0 ?S }T
 
-." after initialization, there is no order in the array" CR
-    INITIALIZE
-    #ORDERS @ 0 ?S
-    @NEXT-ORDER @ ORDERS ?S 
+T{ ." an order is compatible with another if its start time >= the other end-time " CR
+    5 9 10 MAKE-ORDER
+    0 5 10 MAKE-ORDER 
+    COMPATIBLE? -1 ?S
 
-." adding an order stores that order and update next order position" CR
-    INITIALIZE
-    0 5 100 ADD-ORDER
-    ORDERS @ DECODE-ORDER 100 ?S 5 ?S 0 ?S
-    @NEXT-ORDER @ ORDERS CELL+ ?S
-    #ORDERS @ 1 ?S
+    6 8 10 MAKE-ORDER
+    0 5 10 MAKE-ORDER 
+    COMPATIBLE? -1 ?S
 
-." adding an order is not allowed if there is already 10000 orders in the array" CR
-    10000 #ORDERS !
-    3 7 140 ADD-ORDER 
-    #ORDERS @ 10000 ?S
+    3 10 14 MAKE-ORDER
+    0 5  10 MAKE-ORDER 
+    COMPATIBLE? 0 ?S }T
 
-." finding the nearest order to a given time or the maximum order" CR
-    INITIALIZE
-    0 5 100 ADD-ORDER
-    3 7 140 ADD-ORDER
-    5 9  80 ADD-ORDER
-    6 9  70 ADD-ORDER
-    2000000 0 0 ADD-ORDER
-    5 ORDERS NEAREST-ORDER @ DECODE-ORDER 80 ?S 9 ?S 5 ?S
-    10 ORDERS CELL+ NEAREST-ORDER @ DECODE-ORDER 0 ?S 0 ?S 2000000 ?S
-}T
+2VARIABLE BAR
+
+T{ ." two order variables can be exchanged " CR
+    0  5 10 MAKE-ORDER FOO ORDER!
+    3 10 14 MAKE-ORDER BAR ORDER!
+    FOO BAR ORDER-EXCHANGE
+    FOO ORDER@
+    2DUP START-TIME 3 ?S
+    2DUP DURATION  10 ?S
+    PRICE          14 ?S
+    BAR ORDER@
+    2DUP START-TIME 0 ?S
+    2DUP DURATION   5 ?S
+    PRICE          10 ?S }T
+
 BYE
-

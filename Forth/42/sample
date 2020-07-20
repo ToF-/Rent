@@ -1,0 +1,2 @@
+ gforth -e ": foo begin pad dup 10 stdin read-file throw dup while \
+      type repeat ; foo bye"

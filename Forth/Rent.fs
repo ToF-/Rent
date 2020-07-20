@@ -1,40 +1,39 @@
-\ Rent.fs
-\ Solving the RENT problem in gforth
+: MAKE-ORDER ( s,d,p -- p,sd )
+    ROT 32 LSHIFT ROT OR ;
 
-10000 CONSTANT MAX-ORDERS
-VARIABLE #ORDERS
-CREATE ORDERS  MAX-ORDERS 1+ CELLS ALLOT
-VARIABLE @NEXT-ORDER
+: START-TIME ( p,sd -- s )
+    NIP 32 RSHIFT ;
 
-: ENCODE-ORDER ( t,d,p -- n  encode an order in a single cell )
-    ROT  1000000 *  ( d,p,t__ )
-    ROT + 100000 *  ( p,td_ )
-    + ;             ( tdp )
+HEX
+FFFFFFFF CONSTANT DURATION-MASK
+DECIMAL
+: DURATION ( p,sd -- d )
+    NIP DURATION-MASK AND ;
 
-: DECODE-ORDER ( n -- t,d,p  decode a cell into an order )
-    100000  /MOD    ( p,td )
-    1000000 /MOD    ( p,d,t )
-    SWAP ROT ;      ( t,d,p )
+: PRICE ( p,sd -- p )
+    DROP ;
 
-: INITIALIZE ( -- sets variables to initial values )
-    #ORDERS OFF
-    ORDERS @NEXT-ORDER ! ;
+: ORDER! ( p,sd,a -- )
+    2! ;
 
-: ADD-ORDER ( t,d,p -- add an order to the array )
-    ENCODE-ORDER
-    #ORDERS @ MAX-ORDERS < IF
-        @NEXT-ORDER @ !
-        CELL @NEXT-ORDER +!
-        1 #ORDERS +! 
-    ELSE
-        DROP
-    THEN ;
+: ORDER@ ( a -- p,sd )
+    2@ ;
 
-: NEAREST-ORDER ( t,addr -- find the nearest compatible order )
-    SWAP 0 0 ENCODE-ORDER SWAP
-    BEGIN
-        2DUP @ >
-    WHILE 
-        CELL+
-    REPEAT NIP ;
-    
+: ADD-DURATION ( p,sd -- p,s+d0 )
+    NIP
+    DUP DURATION-MASK AND 
+    SWAP 32 RSHIFT +
+    32 LSHIFT 
+    0 SWAP ;
+
+: COMPATIBLE? ( p,sd,p',sd' -- f )
+    ADD-DURATION 
+    D>= ;
+
+: ORDER-EXCHANGE ( a,a' -- exchange order contents )
+    DUP ORDER@ >R >R  \ a,a' -- {sd',p'}
+    OVER ORDER@       \ a,a',p,sd
+    ROT ORDER!        \ a -- a' <- p,sd
+    R> R>             \ a,p',sd'
+    ROT ORDER! ;      \ a <- p',sd'
+
