@@ -93,16 +93,18 @@ DECIMAL
     2000000 0 0 MAKE-ORDER R> ORDER! ;
 
 : ORDERS-VALUE ( a,l -- n )
-    1- CELLS OVER + CELL-   \ a0,ai
-    2DUP BEGIN              \ a0,ai,a0,ai
-        >R
-        R@ @ ORDER@ R@ CELL+ NEXT-COMPATIBLE
-        PRICE@ R@ PRICE@ +
-        R@ CELL+ PRICE@ MAX
-        R@ @ ORDER@ NIP R@ @ ORDER! 
-        R> CELL-
-    2DUP > UNTIL 
-    2DROP DROP
+    1- CELLS OVER + CELL- \ a,n
+    BEGIN                 \ a,i
+        DUP DUP @ ORDER@           \ a,i,i,p,sd
+        ROT NEXT-COMPATIBLE PRICE@ \ a,i,pn
+        OVER PRICE@                \ a,i,pn,pi
+        +                          \ a,i,p'
+        OVER CELL+ PRICE@          \ a,i,p',pj
+        MAX                        \ a,i,pm
+        OVER @ CELL+ !                   \ a,i -- a[i] <- p
+        CELL-
+    2DUP > UNTIL
+    DROP
     PRICE@ ;
 
 : PRINT-ORDER-ARRAY ( a,l )
@@ -117,6 +119,9 @@ CREATE INPUT-LINE 40 ALLOT
 VARIABLE MAX-ORDER
 CREATE ORDERS 10001 2* CELLS ALLOT
 CREATE POINTERS 10001 CELLS ALLOT
+
+: NUMBER->S ( n, -- a,l )
+    0 <# #S #> ;
 
 : GET-ORDERS ( -- )
     READ-NUMBERS DUP MAX-ORDER !
@@ -133,11 +138,12 @@ CREATE POINTERS 10001 CELLS ALLOT
     POINTERS MAX-ORDER @ ORDERS-VALUE ;
 
 : PROCESS 
-    READ-NUMBERS 0 DO
-        GET-ORDERS
-        PROCESS-ORDERS
-        . CR
-    LOOP ;
-
+    READ-NUMBERS ?DUP IF 
+        0 DO
+            GET-ORDERS
+            PROCESS-ORDERS
+            . CR
+        LOOP
+    THEN ;
 PROCESS
 BYE
