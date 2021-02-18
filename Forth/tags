@@ -1,0 +1,75 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_PROGRAM_AUTHOR	Darren Hiebert	/dhiebert@users.sourceforge.net/
+!_TAG_PROGRAM_NAME	Exuberant Ctags	//
+!_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
+!_TAG_PROGRAM_VERSION	5.8	//
+>SPACES	Temp.fs	/^: >SPACES ( a,l -- a',l' advance to first non space )$/;"	d
+>USNUMBERS	Temp.fs	/^: >USNUMBERS ( a,l -- u1,u2,... read single numbers from a string )$/;"	d
+ADD-DURATION	Rent.fs	/^: ADD-DURATION ( p,sd -- p,s+d0 )$/;"	d
+ADD-DURATION	Temp.fs	/^: ADD-DURATION ( p,sd -- p,s+d0 )$/;"	d
+ADD-PRICE	Temp.fs	/^: ADD-PRICE ( p,sd,q -- p+q,sd )$/;"	d
+ADD-SENTINEL	Rent.fs	/^: ADD-SENTINEL ( a,l -- )$/;"	d
+CELL-	Rent.fs	/^: CELL- $/;"	d
+COMPATIBLE	Temp.fs	/^: COMPATIBLE ( p,sd0,p1,sd1 -- sd0 >= s1+d1 )$/;"	d
+COMPATIBLE?	Rent.fs	/^: COMPATIBLE? ( p,sd,p',sd' -- f )$/;"	d
+DURATION	Rent.fs	/^: DURATION ( p,sd -- d )$/;"	d
+DURATION	Temp.fs	/^: DURATION ( p,sd -- d )$/;"	d
+DURATION%	Temp.fs	/^32 CONSTANT DURATION%$/;"	c
+DURATION-MASK	Rent.fs	/^FFFFFFFF CONSTANT DURATION-MASK$/;"	c
+DURATION-MASK	Temp.fs	/^HEX FFFFFFFF DECIMAL CONSTANT DURATION-MASK$/;"	c
+EXCH	Rent.fs	/^: EXCH ( l,h -- )$/;"	d
+EXCHANGE	Temp.fs	/^: EXCHANGE ( a,b -- swap [da] and [db] )$/;"	d
+FOO	Tests.fs	/^2VARIABLE FOO$/;"	v
+GET-NUMBERS	Temp.fs	/^: GET-NUMBERS ( -- d1,d2.. )$/;"	d
+GET-ORDERS	Rent.fs	/^: GET-ORDERS ( -- )$/;"	d
+GET-ORDERS	Temp.fs	/^: GET-ORDERS ( -- )$/;"	d
+GT-PIVOT	Temp.fs	/^: GT-PIVOT ( p,a -- p,a' | a' < a && [a'] <= p )$/;"	d
+INPUT-LINE	Rent.fs	/^CREATE INPUT-LINE 40 ALLOT$/;"	a
+LINE	Temp.fs	/^CREATE LINE 40 ALLOT $/;"	a
+LT-PIVOT	Temp.fs	/^: LT-PIVOT ( dp,a -- dp,a' | a' > a && [a'] >= p )$/;"	d
+LT-PIVOT-GT	Temp.fs	/^: LT-PIVOT-GT ( dp,h,l -- dp,h',l'   limits around pivot )$/;"	d
+MAKE-ORDER	Rent.fs	/^: MAKE-ORDER ( s,d,p -- p,sd )$/;"	d
+MAX-CASE	Temp.fs	/^VARIABLE MAX-CASE$/;"	v
+MAX-ORDER	Rent.fs	/^VARIABLE MAX-ORDER$/;"	v
+MAX-ORDER	Temp.fs	/^VARIABLE MAX-ORDER$/;"	v
+MID	Rent.fs	/^: MID ( l,h -- m )$/;"	d
+NEXT-COMPATIBLE	Rent.fs	/^: NEXT-COMPATIBLE ( p,sd,pa -- pa' )$/;"	d
+NUMBER->S	Rent.fs	/^: NUMBER->S ( n, -- a,l )$/;"	d
+ORDER!	Rent.fs	/^: ORDER! ( p,sd,a -- )$/;"	d
+ORDER!	Temp.fs	/^: ORDER! ( p,sd,a -- )$/;"	d
+ORDER%	Temp.fs	/^CELL 2* CONSTANT ORDER%$/;"	c
+ORDER-POINTERS	Test.fs	/^CREATE ORDER-POINTERS 41 CELLS ALLOT$/;"	a
+ORDER-POSITION	Rent.fs	/^: ORDER-POSITION ( p,sd -- sd )$/;"	d
+ORDER@	Rent.fs	/^: ORDER@ ( a -- p,sd )$/;"	d
+ORDER@	Temp.fs	/^: ORDER@ ( a -- p,sd )$/;"	d
+ORDER@-ARRAY	Rent.fs	/^: ORDER@-ARRAY ( a,p,l -- )$/;"	d
+ORDERS	Rent.fs	/^CREATE ORDERS 10001 2* CELLS ALLOT$/;"	a
+ORDERS	Temp.fs	/^CREATE ORDERS 10000 2* CELLS ALLOT$/;"	a
+ORDERS	Test.fs	/^CREATE ORDERS$/;"	a
+ORDERS%	Temp.fs	/^: ORDERS% ( n -- m memory size on n orders )$/;"	d
+ORDERS-VALUE	Rent.fs	/^: ORDERS-VALUE ( a,l -- n )$/;"	d
+PARTITION	Rent.fs	/^: PARTITION ( l,h -- l',h',h'',l'' )$/;"	d
+PARTITION	Temp.fs	/^: PARTITION ( h,l -- p  partitions the array, leaving new pivot )$/;"	d
+POINTERS	Rent.fs	/^CREATE POINTERS 10001 CELLS ALLOT$/;"	a
+POSITION@	Rent.fs	/^: POSITION@ ( a -- sd )$/;"	d
+PRICE	Rent.fs	/^: PRICE ( p,sd -- p )$/;"	d
+PRICE	Temp.fs	/^: PRICE ( p,sd -- p )$/;"	d
+PRICE@	Rent.fs	/^: PRICE@ ( a -- p )$/;"	d
+PRINT-ORDER	Rent.fs	/^: PRINT-ORDER ( p,sd -- )$/;"	d
+PRINT-ORDER-ARRAY	Rent.fs	/^: PRINT-ORDER-ARRAY ( a,l )$/;"	d
+PRINT-ORDERS	Temp.fs	/^: PRINT-ORDERS$/;"	d
+PROCESS	Rent.fs	/^: PROCESS $/;"	d
+PROCESS	Temp.fs	/^: PROCESS$/;"	d
+PROCESS-ORDERS	Rent.fs	/^: PROCESS-ORDERS ( -- n )$/;"	d
+QSORT	Rent.fs	/^: QSORT ( l,h -- )$/;"	d
+QSORT	Temp.fs	/^: QSORT ( h,l -- sort the array )$/;"	d
+READ-INPUT-LINE	Temp.fs	/^: READ-INPUT-LINE$/;"	d
+READ-NUMBERS	Rent.fs	/^: READ-NUMBERS$/;"	d
+SDP->ORDER	Temp.fs	/^: SDP->ORDER ( s,d,p -- p,sd )$/;"	d
+SOME-ORDERS	Tests.fs	/^CREATE SOME-ORDERS $/;"	a
+SOME-POINTERS	Tests.fs	/^CREATE SOME-POINTERS 5 CELLS ALLOT$/;"	a
+SORT	Rent.fs	/^: SORT ( a,l -- )$/;"	d
+SORT	Temp.fs	/^: SORT ( a,l -- sort array a of size l )$/;"	d
+START-TIME	Rent.fs	/^: START-TIME ( p,sd -- s )$/;"	d
+START-TIME	Temp.fs	/^: START-TIME ( p,sd -- s )$/;"	d

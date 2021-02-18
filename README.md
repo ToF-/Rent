@@ -147,3 +147,89 @@ Finding the mimimum j for which t(j) is greater or equal to a given time x can b
     }
 
 With this algorithm, the number of comparisons falls to O(N.log(N))
+
+Proof
+
+    for each order at index i
+    T[i] = start time of order i
+    D[i] = duration
+    P[i] = price 
+    V[i] = profit value at order i
+    
+    for i in {0..N-1}
+        V[i] ← 0
+    T[N] ← +∞
+    V[N] ← 0
+
+    for i in {N-1..0}
+        l ← i + 1
+        h ← N
+        while l ≤ h
+            m ← l + (h - l) / 2
+            if T[m] < T[i] + D[i]
+                l ← m + 1
+            else
+                k ← m
+                h ← m - 1
+        V[i] ← max(P[i] + V[k], V[i+1])
+    → V[0]
+
+Preconditions
+
+    ∀ i ∈ { 0..N-1 }
+        P[i] > 0
+        D[i] > 0
+        T[i] ≤ T[i+1]
+
+Invariant I(i)
+
+        k = min { j | j > i, T[j] ≥ T[i] + D[i] }
+        V[i] = max(P[i] + V[k], V[i+1])
+
+After
+
+    for i in {0..N-1}
+        V[i] ← 0
+    T[N] ← +∞
+    V[N] ← 0
+        i ← N-1
+        l ← i + 1
+        h ← N
+        while l ≤ h
+            m ← l + (h - l) / 2
+            if T[m] < T[i] + D[i]
+                l ← m + 1
+            else
+                k ← m
+                h ← m - 1
+        V[i] ← max(P[i] + V[k], V[i+1])
+
+I(N-1) is true:
+
+    l = N; h = N; l ≤ h; m = N; k = N
+    V[N-1] = max(P[N-1] + 0, 0)
+
+After
+        i ← N-2
+        l ← i + 1
+        h ← N
+        while l ≤ h
+            m ← l + (h - l) / 2
+            if T[m] < T[i] + D[i]
+                l ← m + 1
+            else
+                k ← m
+                h ← m - 1
+        V[i] ← max(P[i] + V[k], V[i+1])
+
+I(N-2) is true:
+
+    l = N-1; h = N; l ≤ h; m = N-1 
+        case where T[N-1] < T[N-2] + D[N-2]:
+            l = N; m = N; k = N
+            V[N-2] ← max(P[N-2] + V[N], V[N-1])
+            V[N-2] ← max(P[N-2], V[N-1])
+        case where T[N-1] ≥ T[N-2] + D[N-2]:
+            k = N-1; h = N-2
+            V[N-2] ← max(P[N-2] + V[N-1], V[N-1])
+
