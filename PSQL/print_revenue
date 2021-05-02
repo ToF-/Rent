@@ -1,0 +1,2 @@
+#!/bin/bash
+psql -d lags -f print_revenue.sql
